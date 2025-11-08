@@ -1,0 +1,194 @@
+================================================================================
+                    CITAPP - Sistema de Gestión de Inventario
+================================================================================
+
+¡Bienvenido al Sistema CITAPP!
+
+Este archivo contiene las instrucciones más importantes para comenzar a usar
+el sistema rápidamente.
+
+================================================================================
+                              INICIO RÁPIDO
+================================================================================
+
+1. INSTALAR DEPENDENCIAS
+
+   Ejecuta en la terminal:
+
+   npm install
+
+
+2. EJECUTAR LA APLICACIÓN
+
+   Ejecuta en la terminal:
+
+   npm run dev
+
+   La aplicación estará disponible en: http://localhost:5173
+
+
+3. CREAR USUARIO ADMINISTRADOR (PRIMERA VEZ)
+
+   ⚠️ IMPORTANTE: Debes crear el usuario administrador manualmente
+
+   a) Ve a: https://supabase.com
+   b) Abre tu proyecto
+   c) Ve a: Authentication → Users → Add user
+   d) Ingresa:
+      - Email: admin@citapp.com
+      - Password: admin123
+      - ✅ Marca "Auto Confirm User"
+   e) Click en "Create user"
+
+   f) Luego, ve a: SQL Editor y ejecuta:
+
+      INSERT INTO usuarios (id, rol, nombre, apellidos, email, activo)
+      VALUES (
+        (SELECT id FROM auth.users WHERE email = 'admin@citapp.com' LIMIT 1),
+        'admin',
+        'Administrador',
+        'CITAPP',
+        'admin@citapp.com',
+        true
+      );
+
+
+4. INICIAR SESIÓN COMO ADMINISTRADOR
+
+   a) En la aplicación, haz click en "Mi perfil" (arriba a la derecha)
+   b) Ingresa:
+      - Email: admin@citapp.com
+      - Password: admin123
+   c) ¡Listo!
+
+
+5. USO BÁSICO (SIN LOGIN)
+
+   - La aplicación se abre directamente mostrando los productos
+   - Puedes buscar productos sin iniciar sesión
+   - Puedes ver detalles de productos sin iniciar sesión
+   - Los empleados NO necesitan iniciar sesión
+
+================================================================================
+                           CREDENCIALES DE ACCESO
+================================================================================
+
+ADMINISTRADOR:
+Email: admin@citapp.com
+Contraseña: admin123
+
+⚠️ IMPORTANTE: Cambia estas credenciales en producción
+
+================================================================================
+                          DOCUMENTACIÓN DISPONIBLE
+================================================================================
+
+1. README.md              - Descripción general del proyecto
+2. SETUP.md               - Instrucciones detalladas de configuración
+3. GUIA_RAPIDA.md         - Manual de usuario paso a paso
+4. ARQUITECTURA.md        - Documentación técnica completa
+5. PROYECTO_COMPLETO.md   - Resumen ejecutivo del proyecto
+
+================================================================================
+                              CARACTERÍSTICAS
+================================================================================
+
+✅ Gestión completa de productos (crear, editar, eliminar)
+✅ Generación automática de códigos QR
+✅ Búsqueda de productos en tiempo real
+✅ Escaneo de códigos QR
+✅ Control de stock con alertas visuales
+✅ Gestión de administradores
+✅ Dashboard con métricas
+✅ Acceso sin autenticación para empleados
+✅ Diseño responsive (PC, tablet, móvil)
+✅ Arquitectura SOA modular
+
+================================================================================
+                           ESTRUCTURA DEL SISTEMA
+================================================================================
+
+ROLES:
+- Empleado: Acceso sin login, solo consulta
+- Administrador: Acceso completo con login
+
+MÓDULOS:
+- Productos: CRUD + generación de QR
+- Administradores: Gestión de usuarios
+- Dashboard: Métricas del inventario
+- Perfil: Gestión de cuenta personal
+
+BASE DE DATOS:
+- 6 tablas principales
+- Row Level Security (RLS)
+- Políticas restrictivas por rol
+- Triggers automáticos
+
+================================================================================
+                         SOLUCIÓN DE PROBLEMAS
+================================================================================
+
+PROBLEMA: No puedo iniciar sesión
+SOLUCIÓN: Verifica que creaste el usuario en Supabase Auth Y en la tabla
+          usuarios (paso 3 arriba)
+
+PROBLEMA: No veo productos
+SOLUCIÓN: Verifica tu conexión a internet y que las migraciones se ejecutaron
+
+PROBLEMA: Los códigos QR no se generan
+SOLUCIÓN: Verifica tu conexión a internet (usa API externa) y permisos de admin
+
+================================================================================
+                            DATOS DE EJEMPLO
+================================================================================
+
+El sistema incluye:
+✅ 6 productos de ejemplo (sierras, taladros, martillos, etc.)
+✅ 4 categorías de productos
+✅ 4 ubicaciones de almacén
+
+Estos datos se cargan automáticamente al ejecutar las migraciones.
+
+================================================================================
+                           COMPILAR PARA PRODUCCIÓN
+================================================================================
+
+Para crear una versión optimizada para producción:
+
+npm run build
+
+Los archivos compilados estarán en la carpeta /dist
+
+================================================================================
+                              SOPORTE
+================================================================================
+
+Si necesitas ayuda:
+1. Consulta GUIA_RAPIDA.md para el manual de usuario
+2. Consulta SETUP.md para configuración detallada
+3. Revisa la consola del navegador (F12) por errores
+4. Contacta al equipo de desarrollo
+
+================================================================================
+                          EQUIPO DE DESARROLLO
+================================================================================
+
+Proyecto desarrollado para:
+Universidad Tecnológica Emiliano Zapata del Estado de Morelos
+División Académica de Tecnologías de la Información y Diseño
+
+Equipo:
+- Aviles Sotelo Christian Jesus
+- Núñez Lucena José Ángel
+- Pedraza López Oscar Giovanni
+- Torres Méndez Milca
+- Villalobos Hernández Diana
+
+Materia: Arquitecturas de Software
+Grupo: 7°B IDGS
+
+================================================================================
+
+                    ¡Gracias por usar CITAPP!
+
+================================================================================
