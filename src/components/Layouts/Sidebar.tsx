@@ -1,34 +1,35 @@
-import { Package, Users, LogOut, BarChart3, User } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { Package, Users, LogOut, BarChart3, User } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
-interface SidebarProps {
-  currentView: string;
-  onViewChange: (view: string) => void;
-}
-
-export function Sidebar({ currentView, onViewChange }: SidebarProps) {
+export function Sidebar() {
   const { isAdmin, signOut, usuario } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
-    { id: 'products', label: 'Productos', icon: Package, adminOnly: false },
-    ...(isAdmin ? [
-      { id: 'administrators', label: 'Administradores', icon: Users, adminOnly: true },
-      { id: 'reports', label: 'Reportes', icon: BarChart3, adminOnly: true },
-    ] : []),
+    { path: "/productos", label: "Productos", icon: Package, adminOnly: false },
+    ...(isAdmin
+      ? [
+          { path: "/administradores", label: "Administradores", icon: Users, adminOnly: true },
+          { path: "/reportes", label: "Reportes", icon: BarChart3, adminOnly: true },
+        ]
+      : []),
   ];
 
   return (
     <aside className="w-20 bg-gray-800 flex flex-col items-center py-8 space-y-8">
       {menuItems.map((item) => {
         const Icon = item.icon;
+        const isActive = location.pathname === item.path;
         return (
           <button
-            key={item.id}
-            onClick={() => onViewChange(item.id)}
+            key={item.path}
+            onClick={() => navigate(item.path)}
             className={`p-4 rounded-lg transition-colors ${
-              currentView === item.id
-                ? 'bg-red-600 text-white'
-                : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+              isActive
+                ? "bg-red-600 text-white"
+                : "text-gray-400 hover:bg-gray-700 hover:text-white"
             }`}
             title={item.label}
           >
@@ -41,11 +42,11 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
 
       {isAdmin && (
         <button
-          onClick={() => onViewChange('profile')}
+          onClick={() => navigate("/perfil")}
           className={`p-4 rounded-lg transition-colors ${
-            currentView === 'profile'
-              ? 'bg-red-600 text-white'
-              : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+            location.pathname === "/perfil"
+              ? "bg-red-600 text-white"
+              : "text-gray-400 hover:bg-gray-700 hover:text-white"
           }`}
           title="Mi Perfil"
         >

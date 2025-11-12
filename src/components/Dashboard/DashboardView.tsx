@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Package, CheckCircle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState, useEffect } from "react";
+import { Package, CheckCircle } from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function DashboardView() {
   const { usuario } = useAuth();
@@ -9,49 +9,79 @@ export function DashboardView() {
     totalProductos: 0,
     productosDisponibles: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setLoading(true);
+        const { data: productos, error } = await supabase
+          .from("productos")
+          .select("cantidad");
+
+        if (error) throw error;
+
+        if (productos) {
+          const total = productos.length;
+          const disponibles = productos.filter((p) => p.cantidad > 0).length;
+          setStats({
+            totalProductos: total,
+            productosDisponibles: disponibles,
+          });
+        }
+      } catch (err) {
+        console.error("Error cargando estadísticas:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadStats();
   }, []);
 
-  const loadStats = async () => {
-    const { data: productos } = await supabase
-      .from('productos')
-      .select('cantidad');
-
-    if (productos) {
-      const total = productos.length;
-      const disponibles = productos.filter((p) => p.cantidad > 0).length;
-      setStats({
-        totalProductos: total,
-        productosDisponibles: disponibles,
-      });
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-gray-500 text-lg animate-pulse">
+          Cargando estadísticas...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold text-gray-900">
-          BIENVENIDO {usuario?.nombre.toUpperCase()}
+          BIENVENIDO {usuario?.nombre?.toUpperCase() || ""}
         </h1>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg shadow-lg p-8">
+        {/* Productos Disponibles */}
+        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-lg p-8 transition-transform hover:scale-105">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-700">PRODUCTOS DISPONIBLES</h2>
+            <h2 className="text-xl font-bold text-gray-700">
+              PRODUCTOS DISPONIBLES
+            </h2>
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <p className="text-5xl font-bold text-gray-900">{stats.productosDisponibles}</p>
+          <p className="text-5xl font-bold text-gray-900">
+            {stats.productosDisponibles}
+          </p>
         </div>
 
-        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg shadow-lg p-8">
+        {/* Total de Productos */}
+        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-lg p-8 transition-transform hover:scale-105">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-700">TOTAL PRODUCTOS</h2>
+            <h2 className="text-xl font-bold text-gray-700">
+              TOTAL PRODUCTOS
+            </h2>
             <Package className="w-8 h-8 text-blue-600" />
           </div>
-          <p className="text-5xl font-bold text-gray-900">{stats.totalProductos}</p>
+          <p className="text-5xl font-bold text-gray-900">
+            {stats.totalProductos}
+          </p>
         </div>
       </div>
     </div>

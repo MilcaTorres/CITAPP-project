@@ -7,6 +7,8 @@ import { AdministratorsView } from "./components/Administrators/AdministratorsVi
 import { ProfileView } from "./components/Profile/ProfileView";
 import MainLayout from "./components/Layouts/MainLayout";
 import PrivateRoute from "./Routes/PrivateRoute";
+import { ReportsView } from "./components/Reports/ReportsViews";
+
 
 // 🔒 Componente para proteger rutas según el rol admin
 function AdminRoute({ children }: { children: JSX.Element }) {
@@ -42,6 +44,7 @@ export default function App() {
                 </AdminRoute>
               }
             />
+           <Route path="reportes" element={<ReportsView/>} />
             <Route path="perfil" element={<ProfileView />} />
           </Route>
 
