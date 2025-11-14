@@ -10,6 +10,9 @@ interface ProductDetailProps {
   onDelete: () => void;
 }
 
+
+
+
 export function ProductDetail({ producto, onBack, onGenerateQR, onEdit, onDelete }: ProductDetailProps) {
   const { isAdmin } = useAuth();
 
@@ -89,15 +92,6 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onEdit, onDelete
 
           {isAdmin && (
             <div className="flex space-x-4 pt-4">
-              {!producto.qr_url && (
-                <button
-                  onClick={onGenerateQR}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-                >
-                  <QrCode className="w-5 h-5" />
-                  <span>Generar QR</span>
-                </button>
-              )}
 
               <button
                 onClick={onEdit}

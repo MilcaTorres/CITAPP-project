@@ -2,12 +2,25 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Producto, Categoria, Ubicacion } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { generateProductQRData, generateQRCodeUrl } from "../../utils/qrcode";
+
 
 interface ProductFormProps {
   producto?: Producto;
   onClose: () => void;
   onSave: () => void;
 }
+
+function generarClaveAuto() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let codigo = "";
+  for (let i = 0; i < 6; i++) {
+    codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `PROD-${codigo}`;
+}
+
+
 
 export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -50,33 +63,72 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
     setLoading(true);
 
     try {
+      let claveFinal = formData.clave;
+
+      // 1️⃣ Nuevo producto → generar clave automática
+      if (!producto) {
+        claveFinal = generarClaveAuto();
+      }
+
+      // 2️⃣ Armar datos iniciales para insertar/actualizar
       const dataToSave = {
         ...formData,
+        clave: claveFinal,
         categoria_id: formData.categoria_id || null,
         ubicacion_id: formData.ubicacion_id || null,
       };
 
+      let savedProduct;
+
+      // 3️⃣ Guardar producto (sin QR todavía)
       if (producto) {
-        const { error } = await supabase
-          .from('productos')
+        const { data, error } = await supabase
+          .from("productos")
           .update(dataToSave)
-          .eq('id', producto.id);
+          .eq("id", producto.id)
+          .select()
+          .single();
+
         if (error) throw error;
+        savedProduct = data;
       } else {
-        const { error } = await supabase
-          .from('productos')
-          .insert([dataToSave]);
+        const { data, error } = await supabase
+          .from("productos")
+          .insert([dataToSave])
+          .select()
+          .single();
+
         if (error) throw error;
+        savedProduct = data;
       }
+
+      // 4️⃣ Generar información del QR (JSON)
+      const qrData = generateProductQRData({
+        id: savedProduct.id,
+        clave: savedProduct.clave,
+        nombre: savedProduct.nombre,
+      });
+
+      // 5️⃣ Generar URL del QR
+      const qrUrl = generateQRCodeUrl(qrData);
+
+      // 6️⃣ Actualizar producto con qr_url
+      const { error: qrError } = await supabase
+        .from("productos")
+        .update({ qr_url: qrUrl })
+        .eq("id", savedProduct.id);
+
+      if (qrError) throw qrError;
 
       onSave();
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Error al guardar el producto');
+      console.error("Error saving product:", error);
+      alert("Error al guardar el producto");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -95,19 +147,6 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Código / Clave *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.clave}
-                onChange={(e) => setFormData({ ...formData, clave: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Ej: SAC100601"
-              />
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
