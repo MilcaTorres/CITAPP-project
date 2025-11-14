@@ -19,7 +19,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // --- Efecto inicial: sincroniza sesión actual y escucha cambios ---
+ 
+ useEffect(() => {
+  if (sessionStorage.getItem("sessionResetDone")) return;
+
+  supabase.auth.signOut();
+  localStorage.clear();
+
+  // Marca que ya se ejecutó una vez
+  sessionStorage.setItem("sessionResetDone", "true");
+}, []);
+
+
+  /*
+  ======================================================
+ Sincronizar sesión y escuchar cambios
+  ======================================================
+  */
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -31,7 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(currentUser);
 
         if (currentUser) {
-          setLoading(true);
           await loadUsuario(currentUser.id);
         }
       } catch (err) {
@@ -58,12 +73,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  // --- Carga el registro del usuario desde la tabla "usuarios" ---
+  /*
+  ======================================================
+ Cargar registro de usuario en tabla "usuarios"
+  ======================================================
+  */
   const loadUsuario = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -73,13 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) throw error;
-
-      if (!data) {
-        console.warn("⚠️ No se encontró el registro en 'usuarios'.");
-        setUsuario(null);
-      } else {
-        setUsuario(data);
-      }
+      setUsuario(data ?? null);
     } catch (err: any) {
       console.error("Error al cargar usuario:", err.message || err);
       setUsuario(null);
@@ -88,7 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // --- Iniciar sesión ---
+  /*
+  ======================================================
+   Iniciar sesión
+  ======================================================
+  */
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -102,7 +117,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // --- Cerrar sesión ---
+  /*
+  ======================================================
+   Cerrar sesión
+  ======================================================
+  */
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -115,7 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // --- Rol ---
+  /*
+  ======================================================
+  Rol Admin
+  ======================================================
+  */
   const isAdmin = !!(usuario?.rol === "admin" && usuario?.activo);
 
   return (
@@ -134,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// --- Hook personalizado ---
+
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

@@ -6,7 +6,7 @@ export function LoginView() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("admin@citapp.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -68,7 +68,7 @@ export function LoginView() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="correo@ejemplo.com"
+                placeholder="Ingresa tu correo"
               />
             </div>
 
