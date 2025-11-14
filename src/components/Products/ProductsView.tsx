@@ -134,10 +134,6 @@ export function ProductsView() {
         producto={selectedProducto}
         onBack={() => setSelectedProducto(null)}
         onGenerateQR={handleGenerateQR}
-        onEdit={() => {
-          setEditingProducto(selectedProducto);
-          setShowForm(true);
-        }}
         onDelete={handleDelete}
       />
     );

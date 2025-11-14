@@ -1,20 +1,21 @@
+import { useState } from 'react';
 import { ArrowLeft, QrCode, Edit2, Trash2 } from 'lucide-react';
 import { Producto } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { ProductForm } from './ProductForm';
 
 interface ProductDetailProps {
   producto: Producto;
   onBack: () => void;
   onGenerateQR: () => void;
-  onEdit: () => void;
   onDelete: () => void;
 }
 
-
-
-
-export function ProductDetail({ producto, onBack, onGenerateQR, onEdit, onDelete }: ProductDetailProps) {
+export function ProductDetail({ producto, onBack, onGenerateQR, onDelete }: ProductDetailProps) {
   const { isAdmin } = useAuth();
+
+  // Nuevo: estado del modal INTERNAMENTE
+  const [showForm, setShowForm] = useState(false);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
@@ -93,8 +94,9 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onEdit, onDelete
           {isAdmin && (
             <div className="flex space-x-4 pt-4">
 
+              {/*  Abrir modal desde aquí */}
               <button
-                onClick={onEdit}
+                onClick={() => setShowForm(true)}
                 className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
               >
                 <Edit2 className="w-5 h-5" />
@@ -111,6 +113,18 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onEdit, onDelete
           )}
         </div>
       </div>
+
+      {/*  Modal dentro de la vista de detalle */}
+      {showForm && (
+        <ProductForm
+          producto={producto}
+          onClose={() => setShowForm(false)}
+          onSave={() => {
+            setShowForm(false);
+            //  Opcional: recargar datos desde la vista padre si quieres
+          }}
+        />
+      )}
     </div>
   );
 }
