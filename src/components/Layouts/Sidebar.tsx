@@ -18,7 +18,7 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-20 bg-gray-800 flex flex-col items-center py-8 space-y-8">
+    <aside className="w-20 bg-primary flex flex-col items-center py-8 space-y-8">
       {menuItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.path;

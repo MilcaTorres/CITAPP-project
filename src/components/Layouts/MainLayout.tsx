@@ -29,12 +29,12 @@ export default function MainLayout() {
         <Header onProfileClick={() => handleViewChange("perfil")} />
 
         {/* Contenido dinámico de la ruta */}
-        <main className="p-8 flex-1 overflow-y-auto">
+        <main className="p-8 flex-1 bg-secondary overflow-y-auto">
           <Outlet />
         </main>
 
         {/* Footer opcional */}
-        <footer className="text-center text-gray-400 text-sm py-4">
+        <footer className="text-center bg-secondary text-white text-sm py-4">
           CITAPP © {new Date().getFullYear()} — Todos los derechos reservados.
         </footer>
       </div>

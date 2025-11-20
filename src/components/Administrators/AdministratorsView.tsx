@@ -53,11 +53,27 @@ export function AdministratorsView() {
 
     loadUsuarios();
   };
-
+  
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">ADMINISTRADORES</h1>
+      {/* Título */}
+      <h1 className="text-3xl font-bold text-white">ADMINISTRADORES</h1>
+
+      {/* Buscador y Botón de Registrar en la misma fila */}
+      <div className="flex items-center justify-between gap-8">
+        {/* Buscador - Lado izquierdo, ocupa menos espacio */}
+        <div className="relative w-80">
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar..."
+            className="w-full pl-10 pr-4 py-3 border border-white rounded-lg bg-secondary"
+          />
+        </div>
+
+        {/* Botón Registrar - Lado derecho */}
         <button
           onClick={() => {
             setEditingUsuario(null);
@@ -70,45 +86,38 @@ export function AdministratorsView() {
         </button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar por nombre o correo..."
-          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
+      {/* Tabla con colores alternos */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                 Nombre
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                 Correo
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                 Estado
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredUsuarios.map((usuario) => (
-              <tr key={usuario.id} className="hover:bg-gray-50">
+          <tbody className="divide-y divide-gray-200">
+            {filteredUsuarios.map((usuario, index) => ( 
+              <tr 
+                key={usuario.id} 
+                className={index % 2 === 0 ? 'bg-tableAdmin text-white' : 'bg-secondaryTableAdmin text-black'}
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium ">
                     {usuario.nombre} {usuario.apellidos}
-                  </div>
+                  </div>  
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{usuario.email}</div>
+                  <div className="text-sm ">{usuario.email}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
