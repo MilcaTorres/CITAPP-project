@@ -1,15 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, UserX, UserCheck } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { Usuario } from '../../types';
-import { AdministratorForm } from './AdministratorForm';
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  UserMinus,
+  UserCheck,
+  SquarePen,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { Usuario } from "../../types";
+import { AddAdministratorForm } from "./AddAdministratorForm";
+import { EditAdministratorForm } from "./EditAdministratorForm";
+import { ConfirmStatusChangeModal } from "./ConfirmStatusChangeModal";
 
 export function AdministratorsView() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<Usuario[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
+  const [confirmingStatusChange, setConfirmingStatusChange] =
+    useState<Usuario | null>(null);
+
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     loadUsuarios();
@@ -23,16 +39,17 @@ export function AdministratorsView() {
         u.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredUsuarios(filtered);
+    setCurrentPage(1); // Reset a la primera página cuando se filtra
   }, [searchTerm, usuarios]);
 
   const loadUsuarios = async () => {
     const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .order('nombre');
+      .from("usuarios")
+      .select("*")
+      .order("nombre");
 
     if (error) {
-      console.error('Error loading usuarios:', error);
+      console.error("Error loading usuarios:", error);
       return;
     }
 
@@ -41,19 +58,26 @@ export function AdministratorsView() {
 
   const handleToggleActivo = async (usuario: Usuario) => {
     const { error } = await supabase
-      .from('usuarios')
+      .from("usuarios")
       .update({ activo: !usuario.activo })
-      .eq('id', usuario.id);
+      .eq("id", usuario.id);
 
     if (error) {
-      console.error('Error toggling usuario:', error);
-      alert('Error al cambiar el estado del administrador');
+      console.error("Error toggling usuario:", error);
+      alert("Error al cambiar el estado del administrador");
       return;
     }
 
+    setConfirmingStatusChange(null);
     loadUsuarios();
   };
-  
+
+  // Cálculos de paginación
+  const totalPages = Math.ceil(filteredUsuarios.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentUsuarios = filteredUsuarios.slice(startIndex, endIndex);
+
   return (
     <div className="space-y-6">
       {/* Título */}
@@ -69,7 +93,7 @@ export function AdministratorsView() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar..."
-            className="w-full pl-10 pr-4 py-3 border border-white rounded-lg bg-secondary"
+            className="w-full pl-4 pr-10 py-3 border border-white rounded-lg bg-secondary text-white placeholder-gray-400 placeholder:text-left focus:outline-none focus:ring-2 focus:ring-white"
           />
         </div>
 
@@ -91,67 +115,77 @@ export function AdministratorsView() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider w-1/3">
                 Nombre
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider w-1/3">
                 Correo
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-black uppercase tracking-wider w-1/6">
                 Estado
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-black uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-black uppercase tracking-wider w-1/6">
                 Acciones
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredUsuarios.map((usuario, index) => ( 
-              <tr 
-                key={usuario.id} 
-                className={index % 2 === 0 ? 'bg-tableAdmin text-white' : 'bg-secondaryTableAdmin text-black'}
+            {currentUsuarios.map((usuario, index) => (
+              <tr
+                key={usuario.id}
+                className={
+                  index % 2 === 0
+                    ? "bg-tableAdmin text-white"
+                    : "bg-secondaryTableAdmin text-black"
+                }
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium ">
                     {usuario.nombre} {usuario.apellidos}
-                  </div>  
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm ">{usuario.email}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap text-center">
                   <span
                     className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       usuario.activo
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {usuario.activo ? 'Activo' : 'Desactivado'}
+                    {usuario.activo ? "Activo" : "Desactivado"}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                  {/* Botón Editar - Color dinámico según fila */}
                   <button
                     onClick={() => {
                       setEditingUsuario(usuario);
                       setShowForm(true);
                     }}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
+                    className={`mr-4 transition-colors ${
+                      index % 2 === 0
+                        ? "text-white hover:text-gray-300"
+                        : "text-black hover:text-gray-600"
+                    }`}
                     title="Editar"
                   >
-                    <Edit2 className="w-5 h-5" />
+                    <SquarePen className="w-5 h-5" />
                   </button>
+                  {/* Botón Activar/Desactivar - Icono simple */}
                   <button
-                    onClick={() => handleToggleActivo(usuario)}
-                    className={`${
+                    onClick={() => setConfirmingStatusChange(usuario)}
+                    className={`p-2 rounded-lg transition-all ${
                       usuario.activo
-                        ? 'text-red-600 hover:text-red-900'
-                        : 'text-green-600 hover:text-green-900'
+                        ? "hover:bg-red-100 text-red-600 hover:text-red-700"
+                        : "hover:bg-green-100 text-green-600 hover:text-green-700"
                     }`}
-                    title={usuario.activo ? 'Desactivar' : 'Activar'}
+                    title={usuario.activo ? "Desactivar" : "Activar"}
                   >
                     {usuario.activo ? (
-                      <UserX className="w-5 h-5" />
+                      <UserMinus className="w-5 h-5" />
                     ) : (
                       <UserCheck className="w-5 h-5" />
                     )}
@@ -164,14 +198,79 @@ export function AdministratorsView() {
 
         {filteredUsuarios.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No se encontraron administradores</p>
+            <p className="text-gray-500 text-lg">
+              No se encontraron administradores
+            </p>
           </div>
         )}
       </div>
 
-      {showForm && (
-        <AdministratorForm
-          usuario={editingUsuario || undefined}
+      {/* Controles de Paginación - Separados de la tabla */}
+      {filteredUsuarios.length > 0 && (
+        <div className="bg-white rounded-lg shadow px-6 py-4 flex items-center justify-between">
+          {/* Items por página */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-700">Mostrar:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-sm text-gray-700">
+              de {filteredUsuarios.length} administradores
+            </span>
+          </div>
+
+          {/* Navegación de páginas */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Página anterior"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </button>
+
+            <span className="text-sm text-gray-700 px-4">
+              Página {currentPage} de {totalPages}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Página siguiente"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showForm && !editingUsuario && (
+        <AddAdministratorForm
+          onClose={() => {
+            setShowForm(false);
+          }}
+          onSave={() => {
+            setShowForm(false);
+            loadUsuarios();
+          }}
+        />
+      )}
+
+      {showForm && editingUsuario && (
+        <EditAdministratorForm
+          usuario={editingUsuario}
           onClose={() => {
             setShowForm(false);
             setEditingUsuario(null);
@@ -181,6 +280,14 @@ export function AdministratorsView() {
             setEditingUsuario(null);
             loadUsuarios();
           }}
+        />
+      )}
+
+      {confirmingStatusChange && (
+        <ConfirmStatusChangeModal
+          usuario={confirmingStatusChange}
+          onConfirm={() => handleToggleActivo(confirmingStatusChange)}
+          onCancel={() => setConfirmingStatusChange(null)}
         />
       )}
     </div>
