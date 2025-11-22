@@ -1,7 +1,7 @@
+import { ArrowLeft, Edit2, QrCode, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { ArrowLeft, QrCode, Edit2, Trash2 } from 'lucide-react';
-import { Producto } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { Producto } from '../../types';
 import { ProductForm } from './ProductForm';
 
 interface ProductDetailProps {
@@ -9,9 +9,10 @@ interface ProductDetailProps {
   onBack: () => void;
   onGenerateQR: () => void;
   onDelete: () => void;
+  readOnly?: boolean;
 }
 
-export function ProductDetail({ producto, onBack, onGenerateQR, onDelete }: ProductDetailProps) {
+export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOnly = false }: ProductDetailProps) {
   const { isAdmin } = useAuth();
 
   // Nuevo: estado del modal INTERNAMENTE
@@ -91,7 +92,7 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete }: Prod
             )}
           </div>
 
-          {isAdmin && (
+          {isAdmin && !readOnly && (
             <div className="flex space-x-4 pt-4">
 
               {/*  Abrir modal desde aquí */}

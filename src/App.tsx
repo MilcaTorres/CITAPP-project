@@ -1,13 +1,15 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AdministratorsView } from "./components/Administrators/AdministratorsView";
 import { LoginView } from "./components/Auth/LoginView";
 import { DashboardView } from "./components/Dashboard/DashboardView";
-import { ProductsView } from "./components/Products/ProductsView";
-import { AdministratorsView } from "./components/Administrators/AdministratorsView";
-import { ProfileView } from "./components/Profile/ProfileView";
+import { EmployeeView } from "./components/Employee/EmployeeView";
 import MainLayout from "./components/Layouts/MainLayout";
-import PrivateRoute from "./Routes/PrivateRoute";
+import PublicLayout from "./components/Layouts/PublicLayout";
+import { ProductsView } from "./components/Products/ProductsView";
+import { ProfileView } from "./components/Profile/ProfileView";
 import { ReportsView } from "./components/Reports/ReportsViews";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import PrivateRoute from "./Routes/PrivateRoute";
 
 
 // 🔒 Componente para proteger rutas según el rol admin
@@ -23,6 +25,10 @@ export default function App() {
         <Routes>
           {/* Ruta pública */}
           <Route path="/login" element={<LoginView />} />
+
+          <Route path="/empleados" element={<PublicLayout />}>
+            <Route index element={<EmployeeView />} />
+          </Route>
 
           {/* Rutas protegidas */}
           <Route
@@ -44,7 +50,7 @@ export default function App() {
                 </AdminRoute>
               }
             />
-           <Route path="reportes" element={<ReportsView/>} />
+            <Route path="reportes" element={<ReportsView />} />
             <Route path="perfil" element={<ProfileView />} />
           </Route>
 
