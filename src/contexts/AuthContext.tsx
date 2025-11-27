@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { Usuario } from "../types";
@@ -8,6 +14,7 @@ interface AuthContextType {
   usuario: Usuario | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
 }
@@ -18,18 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
-
- 
- useEffect(() => {
-  if (sessionStorage.getItem("sessionResetDone")) return;
-
-  supabase.auth.signOut();
-  localStorage.clear();
-
-  // Marca que ya se ejecutó una vez
-  sessionStorage.setItem("sessionResetDone", "true");
-}, []);
-
 
   /*
   ======================================================
@@ -79,9 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /*
   ======================================================
  Cargar registro de usuario en tabla "usuarios"
+ Con retry para usuarios OAuth (puede haber delay en trigger)
   ======================================================
   */
-  const loadUsuario = async (userId: string) => {
+  const loadUsuario = async (userId: string, retryCount = 0) => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 second
+
     try {
       const { data, error } = await supabase
         .from("usuarios")
@@ -90,7 +89,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) throw error;
+
+      // If user not found and we haven't exceeded retries, try again
+      if (!data && retryCount < MAX_RETRIES) {
+        console.log(
+          `Usuario no encontrado, reintentando... (${
+            retryCount + 1
+          }/${MAX_RETRIES})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+        return loadUsuario(userId, retryCount + 1);
+      }
+
       setUsuario(data ?? null);
+
+      if (!data) {
+        console.warn(
+          "Usuario autenticado pero no encontrado en tabla usuarios después de reintentos"
+        );
+      }
     } catch (err: any) {
       console.error("Error al cargar usuario:", err.message || err);
       setUsuario(null);
@@ -107,13 +124,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
     } catch (err) {
       console.error("Error al iniciar sesión:", err);
       throw err;
     } finally {
       setLoading(false);
+    }
+  };
+
+  /*
+  ======================================================
+   Iniciar sesión con Google (OAuth)
+  ======================================================
+  */
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      console.error("Error al iniciar sesión con Google:", err);
+      throw err;
     }
   };
 
@@ -148,6 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         usuario,
         loading,
         signIn,
+        signInWithGoogle,
         signOut,
         isAdmin,
       }}
@@ -156,7 +197,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
 
 export function useAuth() {
   const context = useContext(AuthContext);
