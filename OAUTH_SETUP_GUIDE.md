@@ -84,40 +84,29 @@ Se agregaron las siguientes funcionalidades:
    - Asegurarse de que coincida con la configurada en Google Cloud Console
    - Formato: `https://[PROJECT-ID].supabase.co/auth/v1/callback`
 
-### Paso 3: Configurar la Base de Datos (Opcional)
+### Paso 3: Configurar la Base de Datos
 
-Si necesitas almacenar información adicional de usuarios OAuth:
+**IMPORTANTE**: El trigger `handle_new_user()` ya está configurado en el proyecto mediante migraciones.
+
+La versión actual del trigger:
+
+- ✅ Activa automáticamente usuarios OAuth (Google)
+- ✅ Mantiene inactivos usuarios de email/password (requieren aprobación)
+- ✅ Extrae correctamente nombre completo de metadatos OAuth
+
+**Si necesitas aplicar o actualizar el trigger**, ejecuta la migración:
+
+- Ver: [`supabase/migrations/20251127_fix_oauth_inactive_users.sql`](file:///home/chris/Github/CITAPP-project/supabase/migrations/20251127_fix_oauth_inactive_users.sql)
+- Guía: [`MIGRATION_GUIDE.md`](file:///home/chris/Github/CITAPP-project/MIGRATION_GUIDE.md)
+
+**Comportamiento del trigger**:
 
 ```sql
--- Verificar que la tabla usuarios tenga los campos necesarios
-ALTER TABLE usuarios
-ADD COLUMN IF NOT EXISTS provider TEXT DEFAULT 'email',
-ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+-- Usuarios OAuth (Google, etc.)
+-- → activo = true (acceso inmediato)
 
--- Crear trigger para usuarios OAuth (si no existe)
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.usuarios (id, email, nombre, rol, activo, provider, avatar_url)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-    'usuario',
-    true,
-    COALESCE(NEW.raw_user_meta_data->>'provider', 'email'),
-    NEW.raw_user_meta_data->>'avatar_url'
-  )
-  ON CONFLICT (id) DO NOTHING;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Asociar trigger con auth.users
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+-- Usuarios email/password
+-- → activo = false (requieren aprobación manual de admin)
 ```
 
 ## 🧪 Pruebas
