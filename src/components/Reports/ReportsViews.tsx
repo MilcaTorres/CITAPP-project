@@ -1,24 +1,16 @@
 import { FileText, Loader, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { VerificacionInventario } from '../../types';
+import type { ReporteSummary } from '../../models/report.model';
+import { ReportService } from '../../services/report.service';
+import { handleError } from '../../utils/error-handler';
 import { ReportCard } from './ReportCard';
 import { ReportDetail } from './ReportDetail';
 
-interface GroupedReport {
-    id: string; // Generado basado en fecha+empleado
-    fecha: string;
-    empleado_codigo: string;
-    total_productos: number;
-    con_incidencias: number;
-    verificaciones: VerificacionInventario[];
-}
-
 export function ReportsView() {
-    const [reportes, setReportes] = useState<GroupedReport[]>([]);
-    const [filtered, setFiltered] = useState<GroupedReport[]>([]);
+    const [reportes, setReportes] = useState<ReporteSummary[]>([]);
+    const [filtered, setFiltered] = useState<ReporteSummary[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedReport, setSelectedReport] = useState<GroupedReport | null>(null);
+    const [selectedReport, setSelectedReport] = useState<ReporteSummary | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -36,62 +28,11 @@ export function ReportsView() {
     const loadReportes = async () => {
         try {
             setLoading(true);
-            // 1. Obtener todas las verificaciones con datos del producto
-            const { data, error } = await supabase
-                .from('verificaciones_inventario')
-                .select(`
-                    *,
-                    producto:productos(nombre, clave)
-                `)
-                .order('fecha', { ascending: false });
-
-            if (error) throw error;
-
-            const verificaciones = (data || []) as VerificacionInventario[];
-
-            // 2. Agrupar por fecha (DD-MM-YYYY) y código de empleado
-            const grupos: { [key: string]: GroupedReport } = {};
-
-            verificaciones.forEach(v => {
-                const dateObj = new Date(v.fecha);
-                const fechaStr = dateObj.toLocaleDateString('en-CA'); // YYYY-MM-DD para ordenamiento
-                const key = `${fechaStr}-${v.empleado_codigo}`;
-
-                if (!grupos[key]) {
-                    grupos[key] = {
-                        id: '', // Se generará después
-                        fecha: v.fecha,
-                        empleado_codigo: v.empleado_codigo || 'Desconocido',
-                        total_productos: 0,
-                        con_incidencias: 0,
-                        verificaciones: []
-                    };
-                }
-
-                grupos[key].verificaciones.push(v);
-                grupos[key].total_productos++;
-                if (v.cantidad_sistema !== v.cantidad_fisica) {
-                    grupos[key].con_incidencias++;
-                }
-            });
-
-            // 3. Convertir a array, ordenar por fecha ascendente para asignar IDs consecutivos
-            let reportesArray = Object.values(grupos).sort((a, b) =>
-                new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
-            );
-
-            // Asignar IDs secuenciales (1, 2, 3...)
-            reportesArray = reportesArray.map((reporte, index) => ({
-                ...reporte,
-                id: (index + 1).toString()
-            }));
-
-            // Ordenar descendente para mostrar los más recientes primero
-            reportesArray.reverse();
-
-            setReportes(reportesArray);
-        } catch (error) {
-            console.error('Error cargando reportes:', error);
+            const data = await ReportService.getAllReports();
+            setReportes(data);
+        } catch (err) {
+            const appError = handleError(err);
+            console.error('Error cargando reportes:', appError);
         } finally {
             setLoading(false);
         }

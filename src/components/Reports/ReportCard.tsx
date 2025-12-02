@@ -1,18 +1,13 @@
 import { AlertTriangle, Calendar, CheckCircle, ClipboardList, User } from 'lucide-react';
+import type { ReporteSummary } from '../../models/report.model';
 
 interface ReportCardProps {
-    reporte: {
-        id: string;
-        fecha: string;
-        empleado_codigo: string;
-        total_productos: number;
-        con_incidencias: number;
-    };
+    reporte: ReporteSummary;
     onClick: () => void;
 }
 
 export function ReportCard({ reporte, onClick }: ReportCardProps) {
-    const hasIncidents = reporte.con_incidencias > 0;
+    const hasIncidents = reporte.total_discrepancias > 0;
 
     return (
         <div
@@ -33,7 +28,7 @@ export function ReportCard({ reporte, onClick }: ReportCardProps) {
                 {hasIncidents ? (
                     <span className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full flex items-center font-medium">
                         <AlertTriangle className="w-3 h-3 mr-1" />
-                        {reporte.con_incidencias} Incidencias
+                        {reporte.total_discrepancias} Incidencias
                     </span>
                 ) : (
                     <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full flex items-center font-medium">

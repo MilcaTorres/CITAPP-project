@@ -1,5 +1,6 @@
-import { Package, QrCode, Search } from 'lucide-react';
+import { ArrowLeft, Package, QrCode, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Producto } from '../../types';
 import { ProductCard } from '../Products/ProductCard';
@@ -7,6 +8,7 @@ import { QRScanner } from '../Products/QRScanner';
 import { EmployeeProductDetail } from './EmployeeProductDetail';
 
 export function EmployeeView() {
+    const navigate = useNavigate();
     const [productos, setProductos] = useState<Producto[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -99,11 +101,21 @@ export function EmployeeView() {
             <header className="bg-primary text-white shadow-lg">
                 <div className="max-w-7xl mx-auto px-4 py-6">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Package className="w-8 h-8" />
-                            <div>
-                                <h1 className="text-2xl font-bold">CITAPP - Empleados</h1>
-                                <p className="text-sm text-gray-300">Verificación de Inventario</p>
+                        <div className="flex items-center space-x-8">
+                            <button
+                                onClick={() => navigate('/login')}
+                                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors group"
+                            >
+                                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                <span>Volver al Login</span>
+                            </button>
+
+                            <div className="flex items-center space-x-3 border-l border-gray-600 pl-8">
+                                <Package className="w-8 h-8" />
+                                <div>
+                                    <h1 className="text-2xl font-bold">CITAPP</h1>
+                                    <p className="text-sm text-gray-300">Acceso Empleados</p>
+                                </div>
                             </div>
                         </div>
                         <button

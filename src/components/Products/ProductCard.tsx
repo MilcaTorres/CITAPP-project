@@ -1,8 +1,9 @@
 import { Package } from 'lucide-react';
+import type { ProductWithRelations } from '../../models/product.model';
 import { Producto } from '../../types';
 
 interface ProductCardProps {
-  producto: Producto;
+  producto: Producto | ProductWithRelations;
   onClick: () => void;
 }
 
@@ -10,8 +11,8 @@ export function ProductCard({ producto, onClick }: ProductCardProps) {
   const stockColor = producto.cantidad === 0
     ? 'bg-red-100 text-red-800'
     : producto.cantidad < 10
-    ? 'bg-yellow-100 text-yellow-800'
-    : 'bg-green-100 text-green-800';
+      ? 'bg-yellow-100 text-yellow-800'
+      : 'bg-green-100 text-green-800';
 
   return (
     <div

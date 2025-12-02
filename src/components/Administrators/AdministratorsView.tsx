@@ -10,8 +10,9 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { UserService } from "../../services/user.service";
 import { Usuario } from "../../types";
+import { handleError } from "../../utils/error-handler";
 import { AddAdministratorForm } from "./AddAdministratorForm";
 import { ConfirmStatusChangeModal } from "./ConfirmStatusChangeModal";
 import { EditAdministratorForm } from "./EditAdministratorForm";
@@ -25,6 +26,7 @@ export function AdministratorsView() {
   const [confirmingStatusChange, setConfirmingStatusChange] =
     useState<Usuario | null>(null);
   const [selectedRole, setSelectedRole] = useState<'admin' | 'empleado'>('admin');
+  const [loading, setLoading] = useState(false);
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,33 +50,36 @@ export function AdministratorsView() {
   }, [searchTerm, usuarios, selectedRole]);
 
   const loadUsuarios = async () => {
-    const { data, error } = await supabase
-      .from("usuarios")
-      .select("*")
-      .order("nombre");
-
-    if (error) {
-      console.error("Error loading usuarios:", error);
-      return;
+    try {
+      setLoading(true);
+      const data = await UserService.getAll();
+      setUsuarios(data);
+    } catch (err) {
+      const appError = handleError(err);
+      alert(appError.getUserMessage());
+      console.error("Error loading usuarios:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setUsuarios(data || []);
   };
 
   const handleToggleActivo = async (usuario: Usuario) => {
-    const { error } = await supabase
-      .from("usuarios")
-      .update({ activo: !usuario.activo })
-      .eq("id", usuario.id);
-
-    if (error) {
-      console.error("Error toggling usuario:", error);
-      alert("Error al cambiar el estado del usuario");
-      return;
+    try {
+      setLoading(true);
+      if (usuario.activo) {
+        await UserService.deactivate(usuario.id);
+      } else {
+        await UserService.activate(usuario.id);
+      }
+      setConfirmingStatusChange(null);
+      await loadUsuarios();
+    } catch (err) {
+      const appError = handleError(err);
+      alert(appError.getUserMessage());
+      console.error("Error toggling usuario:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setConfirmingStatusChange(null);
-    loadUsuarios();
   };
 
   // Cálculos de paginación
@@ -93,8 +98,8 @@ export function AdministratorsView() {
         <button
           onClick={() => setSelectedRole('admin')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${selectedRole === 'admin'
-              ? 'bg-white text-primary font-bold'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            ? 'bg-white text-primary font-bold'
+            : 'text-gray-400 hover:text-white hover:bg-gray-800'
             }`}
         >
           <ShieldCheck className="w-5 h-5" />
@@ -103,8 +108,8 @@ export function AdministratorsView() {
         <button
           onClick={() => setSelectedRole('empleado')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${selectedRole === 'empleado'
-              ? 'bg-white text-primary font-bold'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            ? 'bg-white text-primary font-bold'
+            : 'text-gray-400 hover:text-white hover:bg-gray-800'
             }`}
         >
           <Users className="w-5 h-5" />
@@ -193,8 +198,8 @@ export function AdministratorsView() {
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <span
                     className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${usuario.activo
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
                       }`}
                   >
                     {usuario.activo ? "Activo" : "Desactivado"}
@@ -208,8 +213,8 @@ export function AdministratorsView() {
                       setShowForm(true);
                     }}
                     className={`mr-4 transition-colors ${index % 2 === 0
-                        ? "text-white hover:text-gray-300"
-                        : "text-black hover:text-gray-600"
+                      ? "text-white hover:text-gray-300"
+                      : "text-black hover:text-gray-600"
                       }`}
                     title="Editar"
                   >
@@ -219,8 +224,8 @@ export function AdministratorsView() {
                   <button
                     onClick={() => setConfirmingStatusChange(usuario)}
                     className={`p-2 rounded-lg transition-all ${usuario.activo
-                        ? "hover:bg-red-100 text-red-600 hover:text-red-700"
-                        : "hover:bg-green-100 text-green-600 hover:text-green-700"
+                      ? "hover:bg-red-100 text-red-600 hover:text-red-700"
+                      : "hover:bg-green-100 text-green-600 hover:text-green-700"
                       }`}
                     title={usuario.activo ? "Desactivar" : "Activar"}
                   >

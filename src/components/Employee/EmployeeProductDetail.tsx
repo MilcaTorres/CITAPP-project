@@ -1,8 +1,10 @@
 import { AlertCircle, ArrowLeft, CheckCircle, ClipboardCheck, Loader, QrCode } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Producto } from '../../types';
 import { sendDiscrepancyEmail } from '../../services/email';
+import { ReportService } from '../../services/report.service';
+import { Producto } from '../../types';
+import { handleError as handleAppError } from '../../utils/error-handler';
 
 interface EmployeeProductDetailProps {
     producto: Producto;
@@ -71,22 +73,15 @@ export function EmployeeProductDetail({ producto, onBack, onSuccess }: EmployeeP
             // Calcular si coincide
             const coincide = producto.cantidad === cantidadFisicaNum;
 
-            // ... (inside component)
-
-            // Insertar verificación
-            const { error: insertError } = await supabase
-                .from('verificaciones_inventario')
-                .insert({
-                    producto_id: producto.id,
-                    cantidad_sistema: producto.cantidad,
-                    cantidad_fisica: cantidadFisicaNum,
-                    coincide,
-                    observaciones: observaciones.trim(),
-                    empleado_codigo: codigoEmpleado,
-                    fecha: new Date().toISOString(),
-                });
-
-            if (insertError) throw insertError;
+            // Usar ReportService para crear verificación
+            await ReportService.createVerification({
+                producto_id: producto.id,
+                cantidad_sistema: producto.cantidad,
+                cantidad_fisica: cantidadFisicaNum,
+                coincide,
+                observaciones: observaciones.trim(),
+                empleado_codigo: codigoEmpleado
+            });
 
             // Enviar correo si hay discrepancia
             if (!coincide) {
@@ -106,8 +101,9 @@ export function EmployeeProductDetail({ producto, onBack, onSuccess }: EmployeeP
                 onSuccess();
             }, 2000);
         } catch (err: any) {
-            console.error('Error al enviar verificación:', err);
-            setError(err.message || 'Error al enviar la verificación. Intenta nuevamente.');
+            const appError = handleAppError(err);
+            console.error('Error al enviar verificación:', appError);
+            setError(appError.getUserMessage() || 'Error al enviar la verificación. Intenta nuevamente.');
         } finally {
             setLoading(false);
         }

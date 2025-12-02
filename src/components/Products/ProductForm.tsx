@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { Producto, Categoria, Ubicacion } from '../../types';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { generateProductQRData, generateQRCodeUrl } from "../../utils/qrcode";
+import type { ProductWithRelations } from '../../models/product.model';
+import { ProductService } from '../../services/product.service';
+import { Categoria, Producto, Ubicacion } from '../../types';
+import { handleError } from '../../utils/error-handler';
 
 
 interface ProductFormProps {
-  producto?: Producto;
+  producto?: Producto | ProductWithRelations;
   onClose: () => void;
   onSave: () => void;
 }
@@ -65,65 +67,36 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
     try {
       let claveFinal = formData.clave;
 
-      // 1️⃣ Nuevo producto → generar clave automática
+      // Generar clave automática para productos nuevos
       if (!producto) {
         claveFinal = generarClaveAuto();
       }
 
-      // 2️⃣ Armar datos iniciales para insertar/actualizar
       const dataToSave = {
-        ...formData,
         clave: claveFinal,
-        categoria_id: formData.categoria_id || null,
-        ubicacion_id: formData.ubicacion_id || null,
+        nombre: formData.nombre,
+        marca: formData.marca || '',
+        tipo: formData.tipo || '',
+        cantidad: formData.cantidad,
+        clasificacion: formData.clasificacion as 'frágil' | 'no frágil',
+        categoria_id: formData.categoria_id || undefined,
+        ubicacion_id: formData.ubicacion_id || undefined,
       };
 
-      let savedProduct;
-
-      // 3️⃣ Guardar producto (sin QR todavía)
+      // Usar ProductService en lugar de Supabase directo
       if (producto) {
-        const { data, error } = await supabase
-          .from("productos")
-          .update(dataToSave)
-          .eq("id", producto.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        savedProduct = data;
+        await ProductService.update(producto.id, dataToSave);
       } else {
-        const { data, error } = await supabase
-          .from("productos")
-          .insert([dataToSave])
-          .select()
-          .single();
-
-        if (error) throw error;
-        savedProduct = data;
+        const savedProduct = await ProductService.create(dataToSave);
+        // Generar QR automáticamente para productos nuevos
+        await ProductService.generateQR(savedProduct.id);
       }
-
-      // 4️⃣ Generar información del QR (JSON)
-      const qrData = generateProductQRData({
-        id: savedProduct.id,
-        clave: savedProduct.clave,
-        nombre: savedProduct.nombre,
-      });
-
-      // 5️⃣ Generar URL del QR
-      const qrUrl = generateQRCodeUrl(qrData);
-
-      // 6️⃣ Actualizar producto con qr_url
-      const { error: qrError } = await supabase
-        .from("productos")
-        .update({ qr_url: qrUrl })
-        .eq("id", savedProduct.id);
-
-      if (qrError) throw qrError;
 
       onSave();
     } catch (error) {
+      const appError = handleError(error);
+      alert(appError.getUserMessage());
       console.error("Error saving product:", error);
-      alert("Error al guardar el producto");
     } finally {
       setLoading(false);
     }

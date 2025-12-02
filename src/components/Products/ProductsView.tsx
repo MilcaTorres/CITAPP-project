@@ -1,23 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Search, Plus, QrCode } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { Producto } from '../../types';
+import { Plus, QrCode, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import type { ProductWithRelations } from '../../models/product.model';
+import { ProductService } from '../../services/product.service';
+import { handleError } from '../../utils/error-handler';
 import { ProductCard } from './ProductCard';
 import { ProductDetail } from './ProductDetail';
 import { ProductForm } from './ProductForm';
 import { QRScanner } from './QRScanner';
-import { useAuth } from '../../contexts/AuthContext';
-import { generateProductQRData, generateQRCodeUrl } from '../../utils/qrcode';
 
 export function ProductsView() {
   const { isAdmin } = useAuth();
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [filteredProductos, setFilteredProductos] = useState<Producto[]>([]);
+  const [productos, setProductos] = useState<ProductWithRelations[]>([]);
+  const [filteredProductos, setFilteredProductos] = useState<ProductWithRelations[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
+  const [selectedProducto, setSelectedProducto] = useState<ProductWithRelations | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [editingProducto, setEditingProducto] = useState<Producto | null>(null);
+  const [editingProducto, setEditingProducto] = useState<ProductWithRelations | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProductos();
@@ -34,42 +36,35 @@ export function ProductsView() {
   }, [searchTerm, productos]);
 
   const loadProductos = async () => {
-    const { data, error } = await supabase
-      .from('productos')
-      .select(`
-        *,
-        categoria:categorias(*),
-        ubicacion:ubicaciones(*)
-      `)
-      .order('nombre');
-
-    if (error) {
-      console.error('Error loading productos:', error);
-      return;
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await ProductService.getAll();
+      setProductos(data);
+    } catch (err) {
+      const appError = handleError(err);
+      setError(appError.getUserMessage());
+      console.error('Error loading productos:', err);
+    } finally {
+      setLoading(false);
     }
-
-    setProductos(data || []);
   };
 
   const handleGenerateQR = async () => {
     if (!selectedProducto) return;
 
-    const qrData = generateProductQRData(selectedProducto);
-    const qrUrl = generateQRCodeUrl(qrData);
-
-    const { error } = await supabase
-      .from('productos')
-      .update({ qr_url: qrUrl })
-      .eq('id', selectedProducto.id);
-
-    if (error) {
-      console.error('Error generating QR:', error);
-      alert('Error al generar código QR');
-      return;
+    try {
+      setLoading(true);
+      const qrUrl = await ProductService.generateQR(selectedProducto.id);
+      await loadProductos();
+      setSelectedProducto({ ...selectedProducto, qr_url: qrUrl });
+    } catch (err) {
+      const appError = handleError(err);
+      alert(appError.getUserMessage());
+      console.error('Error generating QR:', err);
+    } finally {
+      setLoading(false);
     }
-
-    await loadProductos();
-    setSelectedProducto({ ...selectedProducto, qr_url: qrUrl });
   };
 
   const handleDelete = async () => {
@@ -79,19 +74,18 @@ export function ProductsView() {
       return;
     }
 
-    const { error } = await supabase
-      .from('productos')
-      .delete()
-      .eq('id', selectedProducto.id);
-
-    if (error) {
-      console.error('Error deleting producto:', error);
-      alert('Error al eliminar el producto');
-      return;
+    try {
+      setLoading(true);
+      await ProductService.delete(selectedProducto.id);
+      setSelectedProducto(null);
+      await loadProductos();
+    } catch (err) {
+      const appError = handleError(err);
+      alert(appError.getUserMessage());
+      console.error('Error deleting producto:', err);
+    } finally {
+      setLoading(false);
     }
-
-    setSelectedProducto(null);
-    loadProductos();
   };
 
   const handleScan = (result: string) => {

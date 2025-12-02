@@ -2,11 +2,12 @@ import jsPDF from 'jspdf';
 import { ArrowLeft, Download, Edit2, QrCode, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import type { ProductWithRelations } from '../../models/product.model';
 import { Producto } from '../../types';
 import { ProductForm } from './ProductForm';
 
 interface ProductDetailProps {
-  producto: Producto;
+  producto: Producto | ProductWithRelations;
   onBack: () => void;
   onGenerateQR: () => void;
   onDelete: () => void;

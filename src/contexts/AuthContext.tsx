@@ -1,13 +1,16 @@
+import { User } from "@supabase/supabase-js";
 import {
   createContext,
+  ReactNode,
   useContext,
   useEffect,
+  useRef,
   useState,
-  ReactNode,
 } from "react";
-import { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { AuthService } from "../services/auth.service";
 import { Usuario } from "../types";
+import { handleError } from "../utils/error-handler";
 
 interface AuthContextType {
   user: User | null;
@@ -25,27 +28,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
+  const lastUserId = useRef<string | null>(null);
 
   /*
   ======================================================
- Sincronizar sesión y escuchar cambios
+  Sincronizar sesión y escuchar cambios
   ======================================================
   */
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        const currentUser = session?.user ?? null;
+        const { user: currentUser, usuario: userData } = await AuthService.getCurrentUser();
         setUser(currentUser);
-
-        if (currentUser) {
-          await loadUsuario(currentUser.id);
-        }
+        setUsuario(userData);
+        lastUserId.current = currentUser?.id ?? null;
       } catch (err) {
-        console.error("Error al obtener la sesión:", err);
+        // Solo loguear errores inesperados, getCurrentUser ya maneja no-sesión
+        console.error("Error inesperado al inicializar auth:", err);
+        setUser(null);
+        setUsuario(null);
+        lastUserId.current = null;
       } finally {
         setLoading(false);
       }
@@ -55,17 +57,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
 
-      if (currentUser) {
+      // Si el usuario cambió (o es el inicio), cargar datos
+      if (currentUser && currentUser.id !== lastUserId.current) {
         setLoading(true);
-        loadUsuario(currentUser.id);
-      } else {
+        lastUserId.current = currentUser.id;
+        await loadUsuario(currentUser.id);
+      }
+      // Si no hay usuario, limpiar todo
+      else if (!currentUser) {
         setUsuario(null);
         setLoading(false);
+        lastUserId.current = null;
       }
+      // Si es el mismo usuario, no hacemos nada (evita loading al cambiar de pestaña)
     });
 
     return () => subscription.unsubscribe();
@@ -93,8 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // If user not found and we haven't exceeded retries, try again
       if (!data && retryCount < MAX_RETRIES) {
         console.log(
-          `Usuario no encontrado, reintentando... (${
-            retryCount + 1
+          `Usuario no encontrado, reintentando... (${retryCount + 1
           }/${MAX_RETRIES})`
         );
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
@@ -124,13 +131,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
+      await AuthService.signIn(email, password);
     } catch (err) {
-      console.error("Error al iniciar sesión:", err);
+      const appError = handleError(err);
+      console.error("Error al iniciar sesión:", appError);
       throw err;
     } finally {
       setLoading(false);
@@ -144,15 +148,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   */
   const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      if (error) throw error;
+      await AuthService.signInWithGoogle();
     } catch (err) {
-      console.error("Error al iniciar sesión con Google:", err);
+      const appError = handleError(err);
+      console.error("Error al iniciar sesión con Google:", appError);
       throw err;
     }
   };
@@ -164,10 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   */
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await AuthService.signOut();
     } catch (err) {
-      console.error("Error al cerrar sesión:", err);
+      const appError = handleError(err);
+      console.error("Error al cerrar sesión:", appError);
     } finally {
       setUsuario(null);
       setUser(null);
