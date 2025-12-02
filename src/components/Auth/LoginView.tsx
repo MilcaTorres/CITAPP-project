@@ -259,7 +259,13 @@ export function LoginView() {
           </button>
 
           <div className="mt-6 text-center space-y-4">
-            <p className="text-gray-400 text-sm">¿Olvidó su contraseña?</p>
+            <button
+              type="button"
+              onClick={() => navigate('/forgot-password')}
+              className="text-gray-400 text-sm hover:text-white transition-colors"
+            >
+              ¿Olvidó su contraseña?
+            </button>
           </div>
         </div>
       </div>

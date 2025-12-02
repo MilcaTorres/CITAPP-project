@@ -2,6 +2,7 @@ import { AlertCircle, ArrowLeft, CheckCircle, ClipboardCheck, Loader, QrCode } f
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Producto } from '../../types';
+import { sendDiscrepancyEmail } from '../../services/email';
 
 interface EmployeeProductDetailProps {
     producto: Producto;
@@ -70,6 +71,8 @@ export function EmployeeProductDetail({ producto, onBack, onSuccess }: EmployeeP
             // Calcular si coincide
             const coincide = producto.cantidad === cantidadFisicaNum;
 
+            // ... (inside component)
+
             // Insertar verificación
             const { error: insertError } = await supabase
                 .from('verificaciones_inventario')
@@ -84,6 +87,19 @@ export function EmployeeProductDetail({ producto, onBack, onSuccess }: EmployeeP
                 });
 
             if (insertError) throw insertError;
+
+            // Enviar correo si hay discrepancia
+            if (!coincide) {
+                // No bloqueamos el flujo si falla el correo, solo lo intentamos
+                sendDiscrepancyEmail({
+                    product_name: producto.nombre,
+                    product_code: producto.clave,
+                    system_qty: producto.cantidad,
+                    physical_qty: cantidadFisicaNum,
+                    employee_code: codigoEmpleado,
+                    observations: observaciones.trim()
+                }).catch(console.error);
+            }
 
             setSuccess(true);
             setTimeout(() => {

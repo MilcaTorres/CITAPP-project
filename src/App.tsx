@@ -9,6 +9,7 @@ import { ProfileView } from "./components/Profile/ProfileView";
 import { ReportsView } from "./components/Reports/ReportsViews";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import PrivateRoute from "./Routes/PrivateRoute";
+import { ForgotPasswordView } from "./components/Auth/ForgotPasswordView";
 
 
 // 🔒 Componente para proteger rutas según el rol admin
@@ -22,8 +23,10 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+
           {/* Ruta pública */}
           <Route path="/login" element={<LoginView />} />
+          <Route path="/forgot-password" element={<ForgotPasswordView />} />
           <Route path="/empleado" element={<EmployeeView />} />
 
           {/* Rutas protegidas */}
