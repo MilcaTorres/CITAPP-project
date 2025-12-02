@@ -60,8 +60,16 @@ export interface VerificacionInventario {
   cantidad_sistema: number;
   cantidad_fisica: number;
   coincide: boolean;
-  observaciones: string;
+  observaciones: string | null;
   fecha: string;
   created_at: string;
+  reporte_id: string;
   producto?: Producto;
+}
+
+export interface Reporte {
+  id: string;
+  empleado_codigo: string;
+  fecha: string;
+  created_at: string;
 }
