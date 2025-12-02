@@ -30,6 +30,11 @@ export default function PrivateRoute({ children }: PrivateRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
+  // Si el usuario no está activo, redirige al login (donde se mostrará el mensaje de pendiente)
+  if (!usuario.activo) {
+    return <Navigate to="/login" replace />;
+  }
+
   // Si todo está bien, renderiza las rutas internas (layout principal)
   return children;
 }
