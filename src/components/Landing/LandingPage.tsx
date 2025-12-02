@@ -4,7 +4,7 @@ import { LayoutDashboard, Package, Users, BarChart3, ArrowRight, ShieldCheck } f
 
 export const LandingPage = () => {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col font-sans text-gray-800">
+        <div className="min-h-screen bg-gradient-to-br from-blacl to-black flex flex-col font-sans text-gray-800">
             {/* Navbar */}
             <nav className="w-full px-6 py-4 flex justify-between items-center bg-black/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
                 <div className="flex items-center gap-2">
@@ -26,7 +26,7 @@ export const LandingPage = () => {
             </nav>
 
             {/* Hero Section */}
-            <header className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 lg:py-32 relative overflow-hidden">
+            <header className="flex-1 flex bg-gray-900 backdrop-blur-md flex-col items-center justify-center text-center px-4 py-20 lg:py-32 relative overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
                     <div className="absolute top-20 left-10 w-72 h-72 bg-red-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
                     <div className="absolute top-20 right-10 w-72 h-72 bg-red-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
@@ -34,20 +34,20 @@ export const LandingPage = () => {
                 </div>
 
                 <div className="relative z-10 max-w-4xl mx-auto space-y-8">
-                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
+                    <h1 className="text-5xl text-white md:text-7xl font-extrabold tracking-tight leading-tight">
                         Gestión Inteligente para <br />
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-600 via-red-700 to-red-500">
                             Tu Negocio
                         </span>
                     </h1>
-                    <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto leading-relaxed">
                         Optimiza inventarios, administra personal y visualiza reportes en tiempo real.
                         Todo lo que necesitas en una sola plataforma moderna y segura.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                         <Link
                             to="/login"
-                            className="px-8 py-4 rounded-full bg-gray-900 text-white text-lg font-semibold hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
+                            className="px-8 py-4 rounded-full bg-white text-black text-lg font-semibold hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
                         >
                             Comenzar Ahora
                         </Link>
@@ -62,11 +62,11 @@ export const LandingPage = () => {
             </header>
 
             {/* Features Section */}
-            <section id="features" className="py-20 px-4 bg-white relative z-10">
+            <section id="features" className="py-20 px-4 bg-gray-900 relative z-10">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Todo bajo control</h2>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Todo bajo control</h2>
+                        <p className="text-lg text-white max-w-2xl mx-auto">
                             Herramientas diseñadas para potenciar la productividad y reducir errores operativos.
                         </p>
                     </div>
