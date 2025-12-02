@@ -39,6 +39,7 @@ export interface Usuario {
   email: string;
   activo: boolean;
   created_at: string;
+  codigo?: string; // Código único de 5 dígitos para empleados
 }
 
 export interface Movimiento {
@@ -64,4 +65,5 @@ export interface VerificacionInventario {
   fecha: string;
   created_at: string;
   producto?: Producto;
+  empleado_codigo?: string; // Código del empleado que realizó la verificación
 }

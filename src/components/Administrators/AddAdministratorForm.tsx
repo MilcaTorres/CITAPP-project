@@ -1,18 +1,19 @@
-import { useState } from "react";
-import { X, AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import {
   validateAdministratorForm,
-  validateName,
-  validateLastName,
   validateEmail,
   validateEmailMatch,
+  validateLastName,
+  validateName,
   ValidationError,
 } from "../../utils/formValidation";
 
 interface AddAdministratorFormProps {
   onClose: () => void;
   onSave: () => void;
+  initialRole?: 'admin' | 'empleado';
 }
 
 interface FormErrors {
@@ -25,6 +26,7 @@ interface FormErrors {
 export function AddAdministratorForm({
   onClose,
   onSave,
+  initialRole = 'admin',
 }: AddAdministratorFormProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,9 +34,22 @@ export function AddAdministratorForm({
     apellidos: "",
     email: "",
     confirmEmail: "",
+    rol: initialRole,
+    codigo: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+
+  useEffect(() => {
+    if (formData.rol === 'empleado' && !formData.codigo) {
+      generateEmployeeCode();
+    }
+  }, [formData.rol]);
+
+  const generateEmployeeCode = () => {
+    const code = Math.floor(10000 + Math.random() * 90000).toString();
+    setFormData(prev => ({ ...prev, codigo: code }));
+  };
 
   // Validación en tiempo real cuando el usuario sale del campo
   const handleBlur = (field: string) => {
@@ -104,6 +119,7 @@ export function AddAdministratorForm({
           data: {
             nombre: formData.nombre,
             apellidos: formData.apellidos,
+            rol: formData.rol,
           },
         },
       });
@@ -122,14 +138,30 @@ export function AddAdministratorForm({
       }
 
       if (authData.user) {
-        const { error: userError } = await supabase.from("usuarios").insert([
+        // Verificar si el código ya existe (solo para empleados)
+        if (formData.rol === 'empleado') {
+          const { data: existingCode } = await supabase
+            .from('usuarios')
+            .select('id')
+            .eq('codigo', formData.codigo)
+            .single();
+
+          if (existingCode) {
+            // Si existe, generar uno nuevo y reintentar (simple retry logic)
+            const newCode = Math.floor(10000 + Math.random() * 90000).toString();
+            formData.codigo = newCode;
+          }
+        }
+
+        const { error: userError } = await supabase.from("usuarios").upsert([
           {
             id: authData.user.id,
-            rol: "admin",
+            rol: formData.rol,
             nombre: formData.nombre,
             apellidos: formData.apellidos,
             email: cleanEmail,
             activo: true,
+            codigo: formData.rol === 'empleado' ? formData.codigo : null,
           },
         ]);
 
@@ -138,8 +170,8 @@ export function AddAdministratorForm({
 
       onSave();
     } catch (error: any) {
-      console.error("Error saving administrator:", error);
-      alert(error.message || "Error al guardar el administrador");
+      console.error("Error saving user:", error);
+      alert(error.message || "Error al guardar el usuario");
     } finally {
       setLoading(false);
     }
@@ -163,7 +195,7 @@ export function AddAdministratorForm({
       <div className="bg-primary rounded-lg shadow-xl max-w-2xl w-full">
         <div className="px-8 py-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-white">
-            Agregar Administrador
+            Agregar {formData.rol === 'admin' ? 'Administrador' : 'Empleado'}
           </h2>
           <button
             onClick={onClose}
@@ -174,6 +206,28 @@ export function AddAdministratorForm({
         </div>
 
         <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
+          {/* Selector de Rol */}
+          <div className="flex space-x-4 mb-4">
+            <label className="flex items-center space-x-2 text-white cursor-pointer">
+              <input
+                type="radio"
+                checked={formData.rol === 'admin'}
+                onChange={() => setFormData({ ...formData, rol: 'admin', codigo: '' })}
+                className="form-radio text-red-600"
+              />
+              <span>Administrador</span>
+            </label>
+            <label className="flex items-center space-x-2 text-white cursor-pointer">
+              <input
+                type="radio"
+                checked={formData.rol === 'empleado'}
+                onChange={() => setFormData({ ...formData, rol: 'empleado' })}
+                className="form-radio text-red-600"
+              />
+              <span>Empleado</span>
+            </label>
+          </div>
+
           {/* Grid de 2 columnas para los campos */}
           <div className="grid grid-cols-2 gap-6">
             {/* Nombre */}
@@ -273,6 +327,31 @@ export function AddAdministratorForm({
               )}
             </div>
           </div>
+
+          {/* Código de Empleado (Solo si es empleado) */}
+          {formData.rol === 'empleado' && (
+            <div className="bg-white/10 p-4 rounded-lg border border-white/20">
+              <label className="block text-sm font-bold text-white mb-2">
+                Código de Empleado Generado
+              </label>
+              <div className="flex items-center space-x-4">
+                <div className="text-3xl font-mono font-bold text-yellow-400 tracking-widest">
+                  {formData.codigo}
+                </div>
+                <button
+                  type="button"
+                  onClick={generateEmployeeCode}
+                  className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                  title="Generar nuevo código"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-xs text-gray-300 mt-2">
+                Este código será necesario para que el empleado envíe verificaciones.
+              </p>
+            </div>
+          )}
 
           {/* Nota informativa */}
           <div className="bg-blue-900 bg-opacity-30 border border-blue-400 rounded-lg p-3">

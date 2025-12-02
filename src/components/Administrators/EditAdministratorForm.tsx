@@ -1,10 +1,10 @@
+import { AlertCircle, X } from "lucide-react";
 import { useState } from "react";
-import { X, AlertCircle } from "lucide-react";
-import { Usuario } from "../../types";
 import { supabase } from "../../lib/supabase";
+import { Usuario } from "../../types";
 import {
-  validateName,
   validateLastName,
+  validateName,
   ValidationError,
 } from "../../utils/formValidation";
 
@@ -95,8 +95,8 @@ export function EditAdministratorForm({
 
       onSave();
     } catch (error: any) {
-      console.error("Error updating administrator:", error);
-      alert(error.message || "Error al actualizar el administrador");
+      console.error("Error updating user:", error);
+      alert(error.message || "Error al actualizar el usuario");
     } finally {
       setLoading(false);
     }
@@ -120,7 +120,7 @@ export function EditAdministratorForm({
       <div className="bg-primary rounded-lg shadow-xl max-w-md w-full">
         <div className="px-8 py-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-white">
-            Editar Administrador
+            Editar {usuario.rol === 'admin' ? 'Administrador' : 'Empleado'}
           </h2>
           <button
             onClick={onClose}
@@ -178,6 +178,21 @@ export function EditAdministratorForm({
               </div>
             )}
           </div>
+
+          {/* Código de Empleado (Solo lectura) */}
+          {usuario.rol === 'empleado' && usuario.codigo && (
+            <div className="bg-white/10 p-4 rounded-lg border border-white/20">
+              <label className="block text-sm font-bold text-white mb-2">
+                Código de Empleado
+              </label>
+              <div className="text-2xl font-mono font-bold text-yellow-400 tracking-widest">
+                {usuario.codigo}
+              </div>
+              <p className="text-xs text-gray-300 mt-2">
+                Este código no se puede modificar.
+              </p>
+            </div>
+          )}
 
           {/* Botones */}
           <div className="flex justify-end space-x-4 pt-6">

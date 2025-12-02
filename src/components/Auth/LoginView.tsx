@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -205,6 +205,14 @@ export function LoginView() {
                 ? "Iniciando sesión..."
                 : "Iniciar Sesión"}
             </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/empleado')}
+              className="w-full bg-gray-700 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2"
+            >
+              <span>Acceder como Empleado</span>
+            </button>
           </form>
 
           {/* Divider */}
@@ -250,7 +258,7 @@ export function LoginView() {
             Continuar con Google
           </button>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-4">
             <p className="text-gray-400 text-sm">¿Olvidó su contraseña?</p>
           </div>
         </div>
