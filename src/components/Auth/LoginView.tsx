@@ -268,15 +268,6 @@ export function LoginView() {
             </button>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-700">
-            <button
-              type="button"
-              onClick={() => navigate('/empleados')}
-              className="w-full bg-gray-700 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2"
-            >
-              <span>Acceso Empleados</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>
