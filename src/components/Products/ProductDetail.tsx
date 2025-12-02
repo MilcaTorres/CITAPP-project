@@ -10,9 +10,10 @@ interface ProductDetailProps {
   onBack: () => void;
   onGenerateQR: () => void;
   onDelete: () => void;
+  readOnly?: boolean;
 }
 
-export function ProductDetail({ producto, onBack, onGenerateQR, onDelete }: ProductDetailProps) {
+export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOnly = false }: ProductDetailProps) {
   const { isAdmin } = useAuth();
 
   // Nuevo: estado del modal INTERNAMENTE
@@ -131,7 +132,7 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete }: Prod
             )}
           </div>
 
-          {isAdmin && (
+          {isAdmin && !readOnly && (
             <div className="flex space-x-4 pt-4">
 
               {/*  Abrir modal desde aquí */}

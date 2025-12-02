@@ -4,12 +4,16 @@ import { LoginView } from "./components/Auth/LoginView";
 import { DashboardView } from "./components/Dashboard/DashboardView";
 import { EmployeeView } from "./components/Employee/EmployeeView";
 import MainLayout from "./components/Layouts/MainLayout";
+import { LandingPage } from "./components/Landing/LandingPage";
+import PublicLayout from "./components/Layouts/PublicLayout";
+import { NotFoundPage } from "./components/NotFound/NotFoundPage";
 import { ProductsView } from "./components/Products/ProductsView";
 import { ProfileView } from "./components/Profile/ProfileView";
 import { ReportsView } from "./components/Reports/ReportsViews";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import PrivateRoute from "./Routes/PrivateRoute";
 import { ForgotPasswordView } from "./components/Auth/ForgotPasswordView";
+
 
 
 // 🔒 Componente para proteger rutas según el rol admin
@@ -25,24 +29,30 @@ export default function App() {
         <Routes>
 
           {/* Ruta pública */}
+          {/* Landing Page */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Ruta pública de Login */}
           <Route path="/login" element={<LoginView />} />
           <Route path="/forgot-password" element={<ForgotPasswordView />} />
           <Route path="/empleado" element={<EmployeeView />} />
 
+          <Route path="/empleados" element={<PublicLayout />}>
+            <Route index element={<EmployeeView />} />
+          </Route>
+
           {/* Rutas protegidas */}
           <Route
-            path="/"
             element={
               <PrivateRoute>
                 <MainLayout />
               </PrivateRoute>
             }
           >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardView />} />
-            <Route path="productos" element={<ProductsView />} />
+            <Route path="/dashboard" element={<DashboardView />} />
+            <Route path="/productos" element={<ProductsView />} />
             <Route
-              path="administradores"
+              path="/administradores"
               element={
                 <AdminRoute>
                   <AdministratorsView />
@@ -51,10 +61,11 @@ export default function App() {
             />
             <Route path="reportes" element={<ReportsView />} />
             <Route path="perfil" element={<ProfileView />} />
+
           </Route>
 
-          {/* Ruta por defecto: redirigir a login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Ruta 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
