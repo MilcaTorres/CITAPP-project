@@ -51,8 +51,8 @@ export function ReportsView() {
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">REPORTES</h1>
-                    <p className="text-gray-500 mt-1">Historial de verificaciones agrupado por empleado</p>
+                    <h1 className="text-3xl font-bold text-white">REPORTES</h1>
+                    <p className="text-white mt-1">Historial de verificaciones agrupado por empleado</p>
                 </div>
             </div>
 

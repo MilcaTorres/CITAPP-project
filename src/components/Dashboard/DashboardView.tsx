@@ -52,7 +52,7 @@ export function DashboardView() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">
+        <h1 className="text-4xl font-bold text-white">
           BIENVENIDO {usuario?.nombre?.toUpperCase() || ""}
         </h1>
       </div>

@@ -50,7 +50,7 @@ export function ProfileView() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">MI PERFIL</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">MI PERFIL</h1>
 
       <div className="bg-white rounded-lg shadow p-8 space-y-6">
         <div>
