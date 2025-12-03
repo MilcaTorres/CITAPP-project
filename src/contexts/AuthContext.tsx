@@ -14,7 +14,7 @@ import { handleError } from "../utils/error-handler";
 
 interface AuthContextType {
   user: User | null;
-  usuario: Usuario | null;
+  usuario: Usuario | false | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -26,7 +26,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  // undefined/null = cargando (estado inicial)
+  // false = no existe en la BD
+  // Usuario = perfil cargado
+  const [usuario, setUsuario] = useState<Usuario | false | null>(null);
   const [loading, setLoading] = useState(true);
   const lastUserId = useRef<string | null>(null);
 
@@ -108,7 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return loadUsuario(userId, retryCount + 1);
       }
 
-      setUsuario(data ?? null);
+      // 🔥 Resultado final:
+      // false = no existe
+      // Usuario = existe
+      if (!data) {
+        setUsuario(false);
+      } else {
+        setUsuario(data);
+      }
 
       if (!data) {
         console.warn(
@@ -178,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   Rol Admin
   ======================================================
   */
-  const isAdmin = !!(usuario?.rol === "admin" && usuario?.activo);
+  const isAdmin = !!(usuario && usuario.rol === "admin" && usuario.activo);
 
   return (
     <AuthContext.Provider

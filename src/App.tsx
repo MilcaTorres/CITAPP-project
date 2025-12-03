@@ -13,6 +13,8 @@ import { ReportsView } from "./components/Reports/ReportsViews";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import PrivateRoute from "./Routes/PrivateRoute";
 import { ForgotPasswordView } from "./components/Auth/ForgotPasswordView";
+import { AuthCallback } from "./Routes/AuthCallback";
+import { ProtectedRoute } from "./Routes/ProtectedRoute";
 
 
 
@@ -34,6 +36,7 @@ export default function App() {
 
           {/* Ruta pública de Login */}
           <Route path="/login" element={<LoginView />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/forgot-password" element={<ForgotPasswordView />} />
           <Route path="/empleado" element={<EmployeeView />} />
 
@@ -49,7 +52,14 @@ export default function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/dashboard" element={<DashboardView />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardView />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/productos" element={<ProductsView />} />
             <Route
               path="/administradores"
