@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 export function LoginView() {
+  const location = useLocation();
+  const redirectedError = location.state?.authError;
   const {
     signIn,
     signInWithGoogle,
@@ -189,6 +192,12 @@ export function LoginView() {
                 placeholder="Contraseña"
               />
             </div>
+
+            {redirectedError && (
+              <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-200 px-4 py-3 rounded-lg text-sm mb-4">
+                {redirectedError}
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-200 px-4 py-3 rounded-lg text-sm">

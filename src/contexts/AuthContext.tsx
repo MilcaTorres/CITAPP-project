@@ -180,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUsuario(null);
       setUser(null);
+      lastUserId.current = null;
     }
   };
 
