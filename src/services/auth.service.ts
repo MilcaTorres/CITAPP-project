@@ -41,15 +41,16 @@ export class AuthService {
         }
     }
 
-    /**
-     * Inicia sesión con Google
-     */
     static async signInWithGoogle(): Promise<void> {
         try {
+            const redirectUrl = `${window.location.origin}/auth/callback`;
+            console.log("OAuth redirect URL:", redirectUrl);
+
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/auth/callback`, queryParams: {
+                    redirectTo: redirectUrl,
+                    queryParams: {
                         prompt: "select_account" // 👈 OBLIGA a siempre pedir cuenta
                     }
                 }

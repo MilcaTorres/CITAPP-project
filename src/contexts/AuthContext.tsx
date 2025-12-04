@@ -84,6 +84,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /*
   ======================================================
+  Auto-logout por inactividad (2 minutos)
+  ======================================================
+  */
+  useEffect(() => {
+    if (!user) return;
+
+    const TIMEOUT_MS = 2 * 60 * 1000; // 2 minutos
+    let timeoutId: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        console.log("Sesión cerrada por inactividad");
+        signOut();
+      }, TIMEOUT_MS);
+    };
+
+    // Eventos a escuchar
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+
+    // Configurar listeners
+    const setupListeners = () => {
+      events.forEach(event => {
+        document.addEventListener(event, resetTimer);
+      });
+      resetTimer(); // Iniciar timer
+    };
+
+    // Limpiar listeners
+    const cleanupListeners = () => {
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimer);
+      });
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+
+    setupListeners();
+
+    return cleanupListeners;
+  }, [user]);
+
+  /*
+  ======================================================
  Cargar registro de usuario en tabla "usuarios"
  Con retry para usuarios OAuth (puede haber delay en trigger)
   ======================================================

@@ -1,6 +1,6 @@
+import { ArrowRight, BarChart3, LayoutDashboard, Package, ShieldCheck, Users } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, Package, Users, BarChart3, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const LandingPage = () => {
     return (

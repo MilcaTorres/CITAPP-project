@@ -1,11 +1,19 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { LandingPage } from "../components/Landing/LandingPage";
 import { useAuth } from "../contexts/AuthContext";
 
 export function AuthCallback() {
     const [params] = useSearchParams();
     const navigate = useNavigate();
     const { user, usuario, loading } = useAuth();
+
+    console.log("AuthCallback rendered:", {
+        hasUser: !!user,
+        hasUsuario: !!usuario,
+        loading,
+        params: Object.fromEntries(params.entries())
+    });
 
     useEffect(() => {
         const error = params.get("error");
@@ -32,7 +40,8 @@ export function AuthCallback() {
         if (loading) return;
 
         if (!user) {
-            navigate("/login", { replace: true });
+            // Si no hay usuario y no hay error, mostrar landing page
+            // (esto maneja el caso de visitar "/" directamente)
             return;
         }
 
@@ -62,13 +71,29 @@ export function AuthCallback() {
             }
 
             // Todo correcto
+            console.log("OAuth successful, redirecting to dashboard");
             navigate("/dashboard", { replace: true });
         }
     }, [params, user, usuario, loading, navigate]);
 
+    // Si está cargando o no hay usuario, mostrar landing page
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-900">
+                <div className="text-white text-xl">Verificando acceso...</div>
+            </div>
+        );
+    }
+
+    // Si no hay usuario autenticado, mostrar landing page
+    if (!user) {
+        return <LandingPage />;
+    }
+
+    // Si hay usuario pero aún se está procesando
     return (
-        <div className="min-h-screen flex items-center justify-center text-white">
-            Verificando acceso...
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+            <div className="text-white text-xl">Verificando acceso...</div>
         </div>
     );
 }

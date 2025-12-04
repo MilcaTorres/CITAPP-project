@@ -173,20 +173,24 @@ export class ProductService {
      */
     static async generateQR(id: string): Promise<string> {
         try {
-            // La URL del QR apunta a la vista pública del producto
-            const qrUrl = `${window.location.origin}/empleado/${id}`;
+            // La URL a la que apuntará el QR (vista pública del producto)
+            const targetUrl = `${window.location.origin}/empleado/${id}`;
 
-            // Actualizar el producto con la URL del QR
+            // Generar la URL de la IMAGEN del QR usando una API pública
+            // Esto es necesario porque <img src="..."> espera una imagen, no una página web
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+
+            // Actualizar el producto con la URL de la IMAGEN del QR
             const { error } = await supabase
                 .from('productos')
-                .update({ qr_url: qrUrl })
+                .update({ qr_url: qrImageUrl })
                 .eq('id', id);
 
             if (error) {
                 throw new AppError('Error al generar el código QR', error);
             }
 
-            return qrUrl;
+            return qrImageUrl;
         } catch (error) {
             if (error instanceof AppError) throw error;
             throw new AppError('Error inesperado al generar el código QR', error);

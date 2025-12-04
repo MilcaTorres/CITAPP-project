@@ -80,7 +80,16 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOn
           ) : (
             <div className="w-full max-w-sm mx-auto bg-gray-100 rounded-lg p-12 text-center">
               <QrCode className="w-24 h-24 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">No hay código QR generado</p>
+              <p className="text-gray-500 mb-4">No hay código QR generado</p>
+              {isAdmin && !readOnly && (
+                <button
+                  onClick={onGenerateQR}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 mx-auto"
+                >
+                  <QrCode className="w-5 h-5" />
+                  <span>Generar QR</span>
+                </button>
+              )}
             </div>
           )}
         </div>

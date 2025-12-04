@@ -59,9 +59,19 @@ export function ProductsView() {
 
     try {
       setLoading(true);
+      console.log("Generating QR for product:", selectedProducto.id);
       const qrUrl = await ProductService.generateQR(selectedProducto.id);
+      console.log("QR URL generated:", qrUrl);
+
+      // Recargar el producto específico desde la base de datos
+      const updatedProduct = await ProductService.getById(selectedProducto.id);
+      console.log("Updated product loaded:", updatedProduct);
+
+      // Actualizar la lista completa
       await loadProductos();
-      setSelectedProducto({ ...selectedProducto, qr_url: qrUrl });
+
+      // Actualizar el producto seleccionado con los datos frescos
+      setSelectedProducto(updatedProduct);
     } catch (err) {
       const appError = handleError(err);
       alert(appError.getUserMessage());

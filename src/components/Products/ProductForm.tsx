@@ -87,11 +87,26 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
       if (producto) {
         await ProductService.update(producto.id, dataToSave);
       } else {
+        console.log("Creating product...");
         const savedProduct = await ProductService.create(dataToSave);
+        console.log("Product created:", savedProduct);
+
         // Generar QR automáticamente para productos nuevos
-        await ProductService.generateQR(savedProduct.id);
+        try {
+          console.log("Generating QR for:", savedProduct.id);
+          const qrUrl = await ProductService.generateQR(savedProduct.id);
+          console.log("QR generated successfully:", qrUrl);
+        } catch (qrError) {
+          console.error("Error generating QR for new product:", qrError);
+          // No fallamos la creación del producto si falla el QR, pero avisamos
+          alert("El producto se creó pero hubo un error al generar el código QR. Intente generarlo manualmente.");
+        }
       }
 
+      // Pequeño delay para asegurar que la base de datos se actualizó antes de recargar
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log("Calling onSave...");
       onSave();
     } catch (error) {
       const appError = handleError(error);

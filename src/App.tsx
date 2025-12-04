@@ -1,19 +1,18 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AdministratorsView } from "./components/Administrators/AdministratorsView";
+import { ForgotPasswordView } from "./components/Auth/ForgotPasswordView";
 import { LoginView } from "./components/Auth/LoginView";
 import { DashboardView } from "./components/Dashboard/DashboardView";
 import { EmployeeView } from "./components/Employee/EmployeeView";
 import MainLayout from "./components/Layouts/MainLayout";
-import { LandingPage } from "./components/Landing/LandingPage";
 import PublicLayout from "./components/Layouts/PublicLayout";
 import { NotFoundPage } from "./components/NotFound/NotFoundPage";
 import { ProductsView } from "./components/Products/ProductsView";
 import { ProfileView } from "./components/Profile/ProfileView";
 import { ReportsView } from "./components/Reports/ReportsViews";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import PrivateRoute from "./Routes/PrivateRoute";
-import { ForgotPasswordView } from "./components/Auth/ForgotPasswordView";
 import { AuthCallback } from "./Routes/AuthCallback";
+import PrivateRoute from "./Routes/PrivateRoute";
 import { ProtectedRoute } from "./Routes/ProtectedRoute";
 
 
@@ -31,8 +30,8 @@ export default function App() {
         <Routes>
 
           {/* Ruta pública */}
-          {/* Landing Page */}
-          <Route path="/" element={<LandingPage />} />
+          {/* Landing Page - pero también maneja OAuth callback si viene de Google */}
+          <Route path="/" element={<AuthCallback />} />
 
           {/* Ruta pública de Login */}
           <Route path="/login" element={<LoginView />} />

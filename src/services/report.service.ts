@@ -30,7 +30,7 @@ export class ReportService {
     }
 
     /**
-     * Obtiene todos los reportes agrupados
+     * Obtiene todos los reportes agrupados por empleado y día
      */
     static async getAllReports(): Promise<ReporteSummary[]> {
         try {
@@ -46,17 +46,22 @@ export class ReportService {
                 throw new AppError('Error al cargar reportes', error);
             }
 
-            // Agrupar por reporte_id y empleado_codigo
+            // Agrupar por empleado_codigo y fecha (solo día, sin hora)
             const grupos: { [key: string]: ReporteSummary } = {};
 
             (data || []).forEach((verificacion) => {
-                const key = `${verificacion.empleado_codigo}_${verificacion.reporte_id || 'sin_reporte'}`;
+                // Extraer solo la fecha (YYYY-MM-DD) sin la hora
+                const fecha = new Date(verificacion.fecha);
+                const fechaSolodia = fecha.toISOString().split('T')[0]; // "2024-12-04"
+
+                // Clave única: empleado + fecha del día
+                const key = `${verificacion.empleado_codigo || 'sin_codigo'}_${fechaSolodia}`;
 
                 if (!grupos[key]) {
                     grupos[key] = {
-                        id: verificacion.reporte_id || key,
+                        id: key,
                         empleado_codigo: verificacion.empleado_codigo || 'Sin código',
-                        fecha: verificacion.fecha,
+                        fecha: fechaSolodia, // Guardar solo la fecha del día
                         total_productos: 0,
                         total_discrepancias: 0,
                         verificaciones: []
@@ -70,19 +75,16 @@ export class ReportService {
                 grupos[key].verificaciones.push(verificacion);
             });
 
-            // Convertir a array y ordenar
+            // Convertir a array y ordenar por fecha (más recientes primero)
             let reportesArray = Object.values(grupos).sort((a, b) =>
-                new Date(a.fecha).getTime() - new Date(b.fecha).getTime()
+                new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
             );
 
-            // Asignar IDs secuenciales
+            // Asignar IDs secuenciales para mejor visualización
             reportesArray = reportesArray.map((reporte, index) => ({
                 ...reporte,
                 id: (index + 1).toString()
             }));
-
-            // Ordenar descendente para mostrar los más recientes primero
-            reportesArray.reverse();
 
             return reportesArray;
         } catch (error) {

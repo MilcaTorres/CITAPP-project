@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { useLocation } from "react-router-dom";
 
 export function LoginView() {
   const location = useLocation();
@@ -23,16 +22,33 @@ export function LoginView() {
 
   // Efecto para manejar redirecciones y estados de usuario
   useEffect(() => {
+    // Si está cargando, esperar
+    if (authLoading) {
+      console.log("Auth loading, waiting...");
+      return;
+    }
+
+    // Si hay usuario autenticado
     if (user) {
+      console.log("User detected in LoginView:", user.email);
+
       if (usuario) {
+        console.log("Usuario data loaded:", usuario);
         if (usuario.activo) {
+          console.log("User is active, redirecting to dashboard");
           navigate("/dashboard", { replace: true });
+        } else {
+          console.log("User is inactive, showing pending message");
         }
         // Si no está activo, nos quedamos en esta vista para mostrar el mensaje
+      } else {
+        console.log("User exists but usuario data not loaded yet, waiting...");
       }
       // Si hay user pero no usuario, esperamos a que cargue (authLoading)
+    } else {
+      console.log("No user detected in LoginView");
     }
-  }, [user, usuario, navigate]);
+  }, [user, usuario, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
