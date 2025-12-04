@@ -25,7 +25,9 @@ export function AdministratorsView() {
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [confirmingStatusChange, setConfirmingStatusChange] =
     useState<Usuario | null>(null);
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'empleado'>('admin');
+  const [selectedRole, setSelectedRole] = useState<"admin" | "empleado">(
+    "admin"
+  );
   const [loading, setLoading] = useState(false);
 
   // Paginación
@@ -96,163 +98,181 @@ export function AdministratorsView() {
       {/* Tabs de Roles */}
       <div className="flex space-x-4 border-b border-gray-700 pb-1">
         <button
-          onClick={() => setSelectedRole('admin')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${selectedRole === 'admin'
-            ? 'bg-white text-primary font-bold'
-            : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
+          onClick={() => setSelectedRole("admin")}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${
+            selectedRole === "admin"
+              ? "bg-white text-primary font-bold"
+              : "text-gray-400 hover:text-white hover:bg-gray-800"
+          }`}
         >
           <ShieldCheck className="w-5 h-5" />
           <span>Administradores</span>
         </button>
         <button
-          onClick={() => setSelectedRole('empleado')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${selectedRole === 'empleado'
-            ? 'bg-white text-primary font-bold'
-            : 'text-gray-400 hover:text-white hover:bg-gray-800'
-            }`}
+          onClick={() => setSelectedRole("empleado")}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${
+            selectedRole === "empleado"
+              ? "bg-white text-primary font-bold"
+              : "text-gray-400 hover:text-white hover:bg-gray-800"
+          }`}
         >
           <Users className="w-5 h-5" />
           <span>Empleados</span>
         </button>
       </div>
 
-      {/* Buscador y Botón de Registrar en la misma fila */}
-      <div className="flex items-center justify-between gap-8">
-        {/* Buscador - Lado izquierdo, ocupa menos espacio */}
-        <div className="relative w-80">
+      {/* Buscador + Botón Registrar (RESPONSIVE) */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 md:gap-8">
+        {/* Buscador */}
+        <div className="relative w-full md:w-80">
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={selectedRole === 'empleado' ? "Buscar por nombre, email o código..." : "Buscar..."}
-            className="w-full pl-4 pr-10 py-3 border border-white rounded-lg bg-secondary text-white placeholder-gray-400 placeholder:text-left focus:outline-none focus:ring-2 focus:ring-white"
+            placeholder={
+              selectedRole === "empleado"
+                ? "Buscar por nombre, email o código..."
+                : "Buscar..."
+            }
+            className="w-full pl-4 pr-10 py-3 border border-white rounded-lg bg-secondary text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
           />
         </div>
 
-        {/* Botón Registrar - Lado derecho */}
+        {/* Botón Registrar */}
         <button
           onClick={() => {
             setEditingUsuario(null);
             setShowForm(true);
           }}
-          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
         >
           <Plus className="w-5 h-5" />
           <span>
-            {selectedRole === 'admin' ? 'Registrar administrador' : 'Registrar empleado'}
+            {selectedRole === "admin"
+              ? "Registrar administrador"
+              : "Registrar empleado"}
           </span>
         </button>
       </div>
 
-      {/* Tabla con colores alternos */}
+      {/* TABLA RESPONSIVE */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider w-1/4">
-                Nombre
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider w-1/4">
-                Correo
-              </th>
-              {selectedRole === 'empleado' && (
-                <th className="px-6 py-3 text-center text-xs font-medium text-black uppercase tracking-wider w-1/6">
-                  Código
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-400px)]">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
+                  Nombre
                 </th>
-              )}
-              <th className="px-6 py-3 text-center text-xs font-medium text-black uppercase tracking-wider w-1/6">
-                Estado
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-black uppercase tracking-wider w-1/6">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {currentUsuarios.map((usuario, index) => (
-              <tr
-                key={usuario.id}
-                className={
-                  index % 2 === 0
-                    ? "bg-tableAdmin text-white"
-                    : "bg-secondaryTableAdmin text-black"
-                }
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium ">
-                    {usuario.nombre} {usuario.apellidos}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm ">{usuario.email}</div>
-                </td>
-                {selectedRole === 'empleado' && (
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm font-mono font-bold bg-white/20 rounded px-2 py-1 inline-block">
-                      {usuario.codigo || 'N/A'}
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
+                  Correo
+                </th>
+                {selectedRole === "empleado" && (
+                  <th className="px-4 py-3 text-center text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
+                    Código
+                  </th>
+                )}
+                <th className="px-4 py-3 text-center text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
+                  Estado
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-gray-200">
+              {currentUsuarios.map((usuario, index) => (
+                <tr
+                  key={usuario.id}
+                  className={
+                    index % 2 === 0
+                      ? "bg-tableAdmin text-white"
+                      : "bg-secondaryTableAdmin text-black"
+                  }
+                >
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium">
+                      {usuario.nombre} {usuario.apellidos}
                     </div>
                   </td>
-                )}
-                <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <span
-                    className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${usuario.activo
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-sm">{usuario.email}</div>
+                  </td>
+
+                  {selectedRole === "empleado" && (
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <div className="text-sm font-mono font-bold bg-white/20 rounded px-2 py-1 inline-block">
+                        {usuario.codigo || "N/A"}
+                      </div>
+                    </td>
+                  )}
+
+                  <td className="px-4 py-4 whitespace-nowrap text-center">
+                    <span
+                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        usuario.activo
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
                       }`}
-                  >
-                    {usuario.activo ? "Activo" : "Desactivado"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                  {/* Botón Editar - Color dinámico según fila */}
-                  <button
-                    onClick={() => {
-                      setEditingUsuario(usuario);
-                      setShowForm(true);
-                    }}
-                    className={`mr-4 transition-colors ${index % 2 === 0
-                      ? "text-white hover:text-gray-300"
-                      : "text-black hover:text-gray-600"
+                    >
+                      {usuario.activo ? "Activo" : "Desactivado"}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <button
+                      onClick={() => {
+                        setEditingUsuario(usuario);
+                        setShowForm(true);
+                      }}
+                      className={`mr-4 transition-colors ${
+                        index % 2 === 0
+                          ? "text-white hover:text-gray-300"
+                          : "text-black hover:text-gray-600"
                       }`}
-                    title="Editar"
-                  >
-                    <SquarePen className="w-5 h-5" />
-                  </button>
-                  {/* Botón Activar/Desactivar - Icono simple */}
-                  <button
-                    onClick={() => setConfirmingStatusChange(usuario)}
-                    className={`p-2 rounded-lg transition-all ${usuario.activo
-                      ? "hover:bg-red-100 text-red-600 hover:text-red-700"
-                      : "hover:bg-green-100 text-green-600 hover:text-green-700"
+                      title="Editar"
+                    >
+                      <SquarePen className="w-5 h-5" />
+                    </button>
+
+                    <button
+                      onClick={() => setConfirmingStatusChange(usuario)}
+                      className={`p-2 rounded-lg transition-all ${
+                        usuario.activo
+                          ? "hover:bg-red-100 text-red-600 hover:text-red-700"
+                          : "hover:bg-green-100 text-green-600 hover:text-green-700"
                       }`}
-                    title={usuario.activo ? "Desactivar" : "Activar"}
-                  >
-                    {usuario.activo ? (
-                      <UserMinus className="w-5 h-5" />
-                    ) : (
-                      <UserCheck className="w-5 h-5" />
-                    )}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                      title={usuario.activo ? "Desactivar" : "Activar"}
+                    >
+                      {usuario.activo ? (
+                        <UserMinus className="w-5 h-5" />
+                      ) : (
+                        <UserCheck className="w-5 h-5" />
+                      )}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {filteredUsuarios.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              No se encontraron {selectedRole === 'admin' ? 'administradores' : 'empleados'}
+              No se encontraron{" "}
+              {selectedRole === "admin" ? "administradores" : "empleados"}
             </p>
           </div>
         )}
       </div>
 
-      {/* Controles de Paginación - Separados de la tabla */}
+      {/* PAGINACIÓN */}
       {filteredUsuarios.length > 0 && (
-        <div className="bg-white rounded-lg shadow px-6 py-4 flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Items por página */}
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-700">Mostrar:</span>
@@ -270,11 +290,12 @@ export function AdministratorsView() {
               <option value={50}>50</option>
             </select>
             <span className="text-sm text-gray-700">
-              de {filteredUsuarios.length} {selectedRole === 'admin' ? 'administradores' : 'empleados'}
+              de {filteredUsuarios.length}{" "}
+              {selectedRole === "admin" ? "administradores" : "empleados"}
             </span>
           </div>
 
-          {/* Navegación de páginas */}
+          {/* Navegación */}
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentPage(currentPage - 1)}
@@ -301,6 +322,7 @@ export function AdministratorsView() {
         </div>
       )}
 
+      {/* Modals */}
       {showForm && !editingUsuario && (
         <AddAdministratorForm
           onClose={() => {

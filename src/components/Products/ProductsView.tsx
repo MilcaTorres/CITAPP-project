@@ -1,23 +1,27 @@
-import { Plus, QrCode, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import type { ProductWithRelations } from '../../models/product.model';
-import { ProductService } from '../../services/product.service';
-import { handleError } from '../../utils/error-handler';
-import { ProductCard } from './ProductCard';
-import { ProductDetail } from './ProductDetail';
-import { ProductForm } from './ProductForm';
-import { QRScanner } from './QRScanner';
+import { Plus, QrCode, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import type { ProductWithRelations } from "../../models/product.model";
+import { ProductService } from "../../services/product.service";
+import { handleError } from "../../utils/error-handler";
+import { ProductCard } from "./ProductCard";
+import { ProductDetail } from "./ProductDetail";
+import { ProductForm } from "./ProductForm";
+import { QRScanner } from "./QRScanner";
 
 export function ProductsView() {
   const { isAdmin } = useAuth();
   const [productos, setProductos] = useState<ProductWithRelations[]>([]);
-  const [filteredProductos, setFilteredProductos] = useState<ProductWithRelations[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProducto, setSelectedProducto] = useState<ProductWithRelations | null>(null);
+  const [filteredProductos, setFilteredProductos] = useState<
+    ProductWithRelations[]
+  >([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProducto, setSelectedProducto] =
+    useState<ProductWithRelations | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [editingProducto, setEditingProducto] = useState<ProductWithRelations | null>(null);
+  const [editingProducto, setEditingProducto] =
+    useState<ProductWithRelations | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +48,7 @@ export function ProductsView() {
     } catch (err) {
       const appError = handleError(err);
       setError(appError.getUserMessage());
-      console.error('Error loading productos:', err);
+      console.error("Error loading productos:", err);
     } finally {
       setLoading(false);
     }
@@ -61,7 +65,7 @@ export function ProductsView() {
     } catch (err) {
       const appError = handleError(err);
       alert(appError.getUserMessage());
-      console.error('Error generating QR:', err);
+      console.error("Error generating QR:", err);
     } finally {
       setLoading(false);
     }
@@ -70,7 +74,11 @@ export function ProductsView() {
   const handleDelete = async () => {
     if (!selectedProducto) return;
 
-    if (!confirm(`¿Está seguro de eliminar el producto "${selectedProducto.nombre}"?`)) {
+    if (
+      !confirm(
+        `¿Está seguro de eliminar el producto "${selectedProducto.nombre}"?`
+      )
+    ) {
       return;
     }
 
@@ -82,7 +90,7 @@ export function ProductsView() {
     } catch (err) {
       const appError = handleError(err);
       alert(appError.getUserMessage());
-      console.error('Error deleting producto:', err);
+      console.error("Error deleting producto:", err);
     } finally {
       setLoading(false);
     }
@@ -91,13 +99,13 @@ export function ProductsView() {
   const handleScan = (result: string) => {
     try {
       const data = JSON.parse(result);
-      if (data.type === 'CITAPP_PRODUCT' && data.id) {
+      if (data.type === "CITAPP_PRODUCT" && data.id) {
         const producto = productos.find((p) => p.id === data.id);
         if (producto) {
           setSelectedProducto(producto);
           setShowScanner(false);
         } else {
-          alert('Producto no encontrado');
+          alert("Producto no encontrado");
         }
       }
     } catch (error) {
@@ -108,17 +116,14 @@ export function ProductsView() {
         setSelectedProducto(producto);
         setShowScanner(false);
       } else {
-        alert('Producto no encontrado');
+        alert("Producto no encontrado");
       }
     }
   };
 
   if (showScanner) {
     return (
-      <QRScanner
-        onScan={handleScan}
-        onClose={() => setShowScanner(false)}
-      />
+      <QRScanner onScan={handleScan} onClose={() => setShowScanner(false)} />
     );
   }
 
@@ -135,15 +140,17 @@ export function ProductsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">PRODUCTOS</h1>
-        <div className="flex space-x-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <h1 className="text-3xl font-bold text-white mb-4 sm:mb-0">
+          PRODUCTOS
+        </h1>
+        <div className="flex space-x-2 sm:space-x-4 w-full sm:w-auto">
           <button
             onClick={() => setShowScanner(true)}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            className="bg-blue-600 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1 sm:space-x-2 flex-grow sm:flex-grow-0"
           >
             <QrCode className="w-5 h-5" />
-            <span>Escanear código QR</span>
+            <span className="hidden sm:inline">Escanear código QR</span>
           </button>
           {isAdmin && (
             <button
@@ -151,10 +158,10 @@ export function ProductsView() {
                 setEditingProducto(null);
                 setShowForm(true);
               }}
-              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+              className="bg-red-600 text-white px-3 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-1 sm:space-x-2 flex-grow sm:flex-grow-0"
             >
               <Plus className="w-5 h-5" />
-              <span>Agregar producto</span>
+              <span className="hidden sm:inline">Agregar producto</span>
             </button>
           )}
         </div>
