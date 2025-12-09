@@ -8,6 +8,7 @@ import { ProductCard } from "./ProductCard";
 import { ProductDetail } from "./ProductDetail";
 import { ProductForm } from "./ProductForm";
 import { QRScanner } from "./QRScanner";
+import AlertMessage from "../AlertMessage"
 
 export function ProductsView() {
   const { isAdmin } = useAuth();
@@ -24,6 +25,21 @@ export function ProductsView() {
     useState<ProductWithRelations | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alertData, setAlertData] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  const refreshSelectedProduct = async () => {
+    if (!selectedProducto) return;
+
+    const updated = await ProductService.getById(selectedProducto.id);
+    setSelectedProducto(updated);
+  }
+
+  useEffect(() => {
+    if (alertData) {
+      const timer = setTimeout(() => setAlertData(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alertData]);
 
   useEffect(() => {
     loadProductos();
@@ -48,6 +64,10 @@ export function ProductsView() {
     } catch (err) {
       const appError = handleError(err);
       setError(appError.getUserMessage());
+      setAlertData({
+        type: "error",
+        message: appError.getUserMessage()
+      });
       console.error("Error loading productos:", err);
     } finally {
       setLoading(false);
@@ -72,9 +92,17 @@ export function ProductsView() {
 
       // Actualizar el producto seleccionado con los datos frescos
       setSelectedProducto(updatedProduct);
+
+      setAlertData({
+        type: "success",
+        message: "Código QR generado correctamente"
+      });
     } catch (err) {
       const appError = handleError(err);
-      alert(appError.getUserMessage());
+      setAlertData({
+        type: "error",
+        message: appError.getUserMessage()
+      });
       console.error("Error generating QR:", err);
     } finally {
       setLoading(false);
@@ -84,22 +112,21 @@ export function ProductsView() {
   const handleDelete = async () => {
     if (!selectedProducto) return;
 
-    if (
-      !confirm(
-        `¿Está seguro de eliminar el producto "${selectedProducto.nombre}"?`
-      )
-    ) {
-      return;
-    }
-
     try {
       setLoading(true);
       await ProductService.delete(selectedProducto.id);
+      setAlertData({
+        type: "success",
+        message: "El producto se eliminó correctamente"
+      });
       setSelectedProducto(null);
       await loadProductos();
     } catch (err) {
       const appError = handleError(err);
-      alert(appError.getUserMessage());
+      setAlertData({
+        type: "error",
+        message: appError.getUserMessage()
+      })
       console.error("Error deleting producto:", err);
     } finally {
       setLoading(false);
@@ -115,7 +142,10 @@ export function ProductsView() {
           setSelectedProducto(producto);
           setShowScanner(false);
         } else {
-          alert("Producto no encontrado");
+          setAlertData({
+            type: "error",
+            message: "Producto no encontrado"
+          });
         }
       }
     } catch (error) {
@@ -126,7 +156,10 @@ export function ProductsView() {
         setSelectedProducto(producto);
         setShowScanner(false);
       } else {
-        alert("Producto no encontrado");
+        setAlertData({
+          type: "error",
+          message: "Producto no encontrado"
+        });
       }
     }
   };
@@ -139,17 +172,38 @@ export function ProductsView() {
 
   if (selectedProducto) {
     return (
+      <>
+      {alertData && (
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999]">
+    <AlertMessage type={alertData.type} message={alertData.message} />
+    </div>
+    )}
       <ProductDetail
         producto={selectedProducto}
         onBack={() => setSelectedProducto(null)}
         onGenerateQR={handleGenerateQR}
         onDelete={handleDelete}
-        onProductUpdated={loadProductos}
+        onUpdated={async () => {
+          await refreshSelectedProduct();
+          await loadProductos();
+
+          setAlertData({
+            type: "success",
+            message: "Producto actualizado correctamente"
+          });
+        }}
       />
+      </>
     );
   }
 
   return (
+    <>
+    {alertData && (
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999]">
+        <AlertMessage type={alertData.type} message={alertData.message} />
+      </div>
+    )}
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <h1 className="text-3xl font-bold text-white mb-4 sm:mb-0">
@@ -212,13 +266,22 @@ export function ProductsView() {
             setShowForm(false);
             setEditingProducto(null);
           }}
-          onSave={() => {
+          onSave={async (status) => {
             setShowForm(false);
             setEditingProducto(null);
-            loadProductos();
+            await loadProductos();
+            await refreshSelectedProduct();
+            setAlertData({
+              type: "success",
+              message: 
+              status === "created"
+              ? "Producto agregado correctamente"
+              : "Producto actualizado correctamente"
+            });
           }}
         />
       )}
     </div>
+    </>
   );
 }

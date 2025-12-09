@@ -10,7 +10,7 @@ import { handleError } from '../../utils/error-handler';
 interface ProductFormProps {
   producto?: Producto | ProductWithRelations;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (status: "updated" | "created") => void;
 }
 
 function generarClaveAuto() {
@@ -33,7 +33,7 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
     nombre: producto?.nombre || '',
     marca: producto?.marca || '',
     tipo: producto?.tipo || '',
-    cantidad: producto?.cantidad || 0,
+    cantidad: producto ? String(producto?.cantidad) : "",
     clasificacion: producto?.clasificacion || 'no frágil',
     categoria_id: producto?.categoria_id || '',
     ubicacion_id: producto?.ubicacion_id || '',
@@ -77,7 +77,7 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
         nombre: formData.nombre,
         marca: formData.marca || '',
         tipo: formData.tipo || '',
-        cantidad: formData.cantidad,
+        cantidad: Number(formData.cantidad) || 0,
         clasificacion: formData.clasificacion as 'frágil' | 'no frágil',
         categoria_id: formData.categoria_id || undefined,
         ubicacion_id: formData.ubicacion_id || undefined,
@@ -86,9 +86,11 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
       // Usar ProductService en lugar de Supabase directo
       if (producto) {
         await ProductService.update(producto.id, dataToSave);
+        onSave("updated");
       } else {
         console.log("Creating product...");
         const savedProduct = await ProductService.create(dataToSave);
+        onSave("created");
         console.log("Product created:", savedProduct);
 
         // Generar QR automáticamente para productos nuevos
@@ -106,8 +108,6 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
       // Pequeño delay para asegurar que la base de datos se actualizó antes de recargar
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      console.log("Calling onSave...");
-      onSave();
     } catch (error) {
       const appError = handleError(error);
       alert(appError.getUserMessage());
@@ -185,7 +185,7 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
                 required
                 min="0"
                 value={formData.cantidad}
-                onChange={(e) => setFormData({ ...formData, cantidad: parseInt(e.target.value) || 0 })}
+                onChange={(e) => setFormData({ ...formData, cantidad: e.target.value.replace(/^0+(?=\d)/, "")})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>

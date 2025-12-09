@@ -1,32 +1,32 @@
-import jsPDF from "jspdf";
-import { ArrowLeft, Download, Edit2, QrCode, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import type { ProductWithRelations } from "../../models/product.model";
+import jsPDF from 'jspdf';
+import { ArrowLeft, Download, Edit2, QrCode, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import type { ProductWithRelations } from '../../models/product.model';
+import { Producto } from '../../types';
+import { ProductForm } from './ProductForm';
+import { ConfirmDeleteProductModal } from './ConfirmDeleteProductModal';
 import { ProductService } from "../../services/product.service";
-import { Producto } from "../../types";
-import { ProductForm } from "./ProductForm";
 
 interface ProductDetailProps {
   producto: Producto | ProductWithRelations;
   onBack: () => void;
   onGenerateQR: () => void;
   onDelete: () => void;
-  onProductUpdated?: () => void;
+  onUpdated: () => void;
   readOnly?: boolean;
 }
 
-export function ProductDetail({
-  producto,
-  onBack,
-  onGenerateQR,
-  onDelete,
-  onProductUpdated,
-  readOnly = false,
+export function ProductDetail({ 
+  producto, 
+  onBack, 
+  onGenerateQR, 
+  onDelete, 
+  onUpdated,
+  readOnly = false 
 }: ProductDetailProps) {
   const { isAdmin } = useAuth();
 
-  // Nuevo: estado del modal INTERNAMENTE
   const [showForm, setShowForm] = useState(false);
   // Estado local para el producto que se actualiza después de editar
   const [currentProducto, setCurrentProducto] = useState<
@@ -46,6 +46,8 @@ export function ProductDetail({
       console.error("Error recargando producto:", error);
     }
   };
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleExportQRPDF = () => {
     if (!currentProducto.qr_url) return;
@@ -197,7 +199,7 @@ export function ProductDetail({
               </button>
 
               <button
-                onClick={onDelete}
+                onClick={() => setShowDeleteModal(true)}
                 className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
               >
                 <Trash2 className="w-5 h-5" />
@@ -207,16 +209,27 @@ export function ProductDetail({
         </div>
       </div>
 
-      {/*  Modal dentro de la vista de detalle */}
+      {/*  Modal de editar */}
       {showForm && (
         <ProductForm
           producto={currentProducto}
           onClose={() => setShowForm(false)}
           onSave={async () => {
             setShowForm(false);
-            // Recargar el producto actualizado
-            await handleProductUpdate();
+            onUpdated();
           }}
+        />
+      )}
+
+      {/*  Modal de confirmar eliminación */}
+      {showDeleteModal && (
+        <ConfirmDeleteProductModal
+        producto={producto}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          onDelete();
+        }}
         />
       )}
     </div>
