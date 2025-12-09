@@ -1,48 +1,75 @@
-import jsPDF from 'jspdf';
-import { ArrowLeft, Download, Edit2, QrCode, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import type { ProductWithRelations } from '../../models/product.model';
-import { Producto } from '../../types';
-import { ProductForm } from './ProductForm';
+import jsPDF from "jspdf";
+import { ArrowLeft, Download, Edit2, QrCode, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import type { ProductWithRelations } from "../../models/product.model";
+import { ProductService } from "../../services/product.service";
+import { Producto } from "../../types";
+import { ProductForm } from "./ProductForm";
 
 interface ProductDetailProps {
   producto: Producto | ProductWithRelations;
   onBack: () => void;
   onGenerateQR: () => void;
   onDelete: () => void;
+  onProductUpdated?: () => void;
   readOnly?: boolean;
 }
 
-export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOnly = false }: ProductDetailProps) {
+export function ProductDetail({
+  producto,
+  onBack,
+  onGenerateQR,
+  onDelete,
+  onProductUpdated,
+  readOnly = false,
+}: ProductDetailProps) {
   const { isAdmin } = useAuth();
 
   // Nuevo: estado del modal INTERNAMENTE
   const [showForm, setShowForm] = useState(false);
+  // Estado local para el producto que se actualiza después de editar
+  const [currentProducto, setCurrentProducto] = useState<
+    Producto | ProductWithRelations
+  >(producto);
+
+  // Función para recargar el producto actualizado
+  const handleProductUpdate = async () => {
+    try {
+      const updatedProduct = await ProductService.getById(producto.id);
+      setCurrentProducto(updatedProduct);
+      // Notificar al componente padre que el producto se actualizó
+      if (onProductUpdated) {
+        onProductUpdated();
+      }
+    } catch (error) {
+      console.error("Error recargando producto:", error);
+    }
+  };
 
   const handleExportQRPDF = () => {
-    if (!producto.qr_url) return;
+    if (!currentProducto.qr_url) return;
 
     const doc = new jsPDF();
 
     // Título
     doc.setFontSize(22);
-    doc.text(producto.nombre, 105, 30, { align: 'center' });
+    doc.text(currentProducto.nombre, 105, 30, { align: "center" });
 
     doc.setFontSize(14);
-    doc.text(`Clave: ${producto.clave}`, 105, 40, { align: 'center' });
+    doc.text(`Clave: ${currentProducto.clave}`, 105, 40, { align: "center" });
 
     // Imagen QR
-    // Nota: jsPDF necesita la imagen en base64 o una URL accesible. 
+    // Nota: jsPDF necesita la imagen en base64 o una URL accesible.
     // Como la URL es de una API pública (qrserver), debería funcionar si no hay CORS bloqueante.
     // Si falla, tendríamos que convertirla a base64 primero.
     try {
       const img = new Image();
       img.crossOrigin = "Anonymous";
-      img.src = producto.qr_url;
+      img.src = currentProducto.qr_url;
       img.onload = () => {
-        doc.addImage(img, 'PNG', 55, 50, 100, 100);
-        doc.save(`QR_${producto.clave}.pdf`);
+        doc.addImage(img, "PNG", 55, 50, 100, 100);
+        doc.save(`QR_${currentProducto.clave}.pdf`);
       };
     } catch (error) {
       console.error("Error exportando QR:", error);
@@ -62,11 +89,11 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOn
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="flex flex-col items-center">
-          {producto.qr_url ? (
+          {currentProducto.qr_url ? (
             <>
               <img
-                src={producto.qr_url}
-                alt={`QR de ${producto.nombre}`}
+                src={currentProducto.qr_url}
+                alt={`QR de ${currentProducto.nombre}`}
                 className="w-full max-w-sm mx-auto rounded-lg shadow-md mb-4"
               />
               <button
@@ -96,55 +123,70 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOn
 
         <div className="space-y-6">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">{producto.nombre}</h2>
-            <p className="text-gray-500">Clave: {producto.clave}</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              {currentProducto.nombre}
+            </h2>
+            <p className="text-gray-500">Clave: {currentProducto.clave}</p>
           </div>
 
           <div className="space-y-3">
-            {producto.marca && (
+            {currentProducto.marca && (
               <div>
                 <span className="text-sm text-gray-600">Marca:</span>
-                <p className="text-lg font-medium text-gray-900">{producto.marca}</p>
-              </div>
-            )}
-
-            {producto.tipo && (
-              <div>
-                <span className="text-sm text-gray-600">Tipo:</span>
-                <p className="text-lg font-medium text-gray-900">{producto.tipo}</p>
-              </div>
-            )}
-
-            <div>
-              <span className="text-sm text-gray-600">Cantidad disponible:</span>
-              <p className="text-2xl font-bold text-gray-900">{producto.cantidad}</p>
-            </div>
-
-            <div>
-              <span className="text-sm text-gray-600">Clasificación:</span>
-              <p className="text-lg font-medium text-gray-900 capitalize">{producto.clasificacion}</p>
-            </div>
-
-            {producto.ubicacion && (
-              <div>
-                <span className="text-sm text-gray-600">Ubicación:</span>
                 <p className="text-lg font-medium text-gray-900">
-                  {producto.ubicacion.codigo} - Pasillo {producto.ubicacion.pasillo}, {producto.ubicacion.nivel}
+                  {currentProducto.marca}
                 </p>
               </div>
             )}
 
-            {producto.categoria && (
+            {currentProducto.tipo && (
+              <div>
+                <span className="text-sm text-gray-600">Tipo:</span>
+                <p className="text-lg font-medium text-gray-900">
+                  {currentProducto.tipo}
+                </p>
+              </div>
+            )}
+
+            <div>
+              <span className="text-sm text-gray-600">
+                Cantidad disponible:
+              </span>
+              <p className="text-2xl font-bold text-gray-900">
+                {currentProducto.cantidad}
+              </p>
+            </div>
+
+            <div>
+              <span className="text-sm text-gray-600">Clasificación:</span>
+              <p className="text-lg font-medium text-gray-900 capitalize">
+                {currentProducto.clasificacion}
+              </p>
+            </div>
+
+            {currentProducto.ubicacion && (
+              <div>
+                <span className="text-sm text-gray-600">Ubicación:</span>
+                <p className="text-lg font-medium text-gray-900">
+                  {currentProducto.ubicacion.codigo} - Pasillo{" "}
+                  {currentProducto.ubicacion.pasillo},{" "}
+                  {currentProducto.ubicacion.nivel}
+                </p>
+              </div>
+            )}
+
+            {currentProducto.categoria && (
               <div>
                 <span className="text-sm text-gray-600">Categoría:</span>
-                <p className="text-lg font-medium text-gray-900">{producto.categoria.nombre}</p>
+                <p className="text-lg font-medium text-gray-900">
+                  {currentProducto.categoria.nombre}
+                </p>
               </div>
             )}
           </div>
 
           {isAdmin && !readOnly && (
             <div className="flex space-x-4 pt-4">
-
               {/*  Abrir modal desde aquí */}
               <button
                 onClick={() => setShowForm(true)}
@@ -168,11 +210,12 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOn
       {/*  Modal dentro de la vista de detalle */}
       {showForm && (
         <ProductForm
-          producto={producto}
+          producto={currentProducto}
           onClose={() => setShowForm(false)}
-          onSave={() => {
+          onSave={async () => {
             setShowForm(false);
-            //  Opcional: recargar datos desde la vista padre si quieres
+            // Recargar el producto actualizado
+            await handleProductUpdate();
           }}
         />
       )}

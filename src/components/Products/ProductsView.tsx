@@ -144,6 +144,7 @@ export function ProductsView() {
         onBack={() => setSelectedProducto(null)}
         onGenerateQR={handleGenerateQR}
         onDelete={handleDelete}
+        onProductUpdated={loadProductos}
       />
     );
   }
