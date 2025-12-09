@@ -10,6 +10,14 @@ import type { Producto } from '../types';
 import { AppError } from '../utils/error-handler';
 
 /**
+ * Normaliza un texto para comparación case-insensitive
+ */
+function normalizeText(value?: string | null): string {
+    if (!value) return '';
+    return value.trim().toLowerCase();
+}
+
+/**
  * Servicio para gestión de productos
  * Centraliza toda la lógica de negocio relacionada con productos
  */
@@ -93,9 +101,11 @@ export class ProductService {
     }
 
     /**
-     * Crea un nuevo producto
+     * Crea un nuevo producto O actualiza la cantidad si ya existe
+     * OPCIÓN 2: Búsqueda por nombre+marca+tipo (NO usar UNIQUE constraint en clave)
      */
     static async create(productData: CreateProductDTO): Promise<Producto> {
+        console.log('⭐⭐⭐ ProductService.create LLAMADO ⭐⭐⭐', productData);
         try {
             // Validar datos
             const validationErrors = validateProductData(productData);
@@ -103,9 +113,97 @@ export class ProductService {
                 throw new AppError(validationErrors.join(', '));
             }
 
+            if (!productData.nombre?.trim()) {
+                throw new AppError('El nombre del producto es requerido');
+            }
+
+            // Normalizar para comparación
+            const nombreNorm = normalizeText(productData.nombre);
+            const marcaNorm = normalizeText(productData.marca);
+            const tipoNorm = normalizeText(productData.tipo);
+
+            console.log('🔍 NORMALIZANDO PRODUCTO:');
+            console.log('  Input:', { nombre: productData.nombre, marca: productData.marca, tipo: productData.tipo });
+            console.log('  Normalizado:', { nombreNorm, marcaNorm, tipoNorm });
+
+            // 1) Obtener TODOS los productos (limitado a nombre similar)
+            const { data: allProducts, error: searchError } = await supabase
+                .from('productos')
+                .select('*');
+
+            if (searchError) {
+                throw new AppError('Error buscando productos existentes', searchError);
+            }
+
+            console.log(`📦 Total productos en BD: ${allProducts?.length || 0}`);
+
+            // 2) Filtrar en memoria por coincidencia exacta (case-insensitive)
+            const existingProduct = allProducts?.find(product => {
+                const prodNombre = normalizeText(product.nombre);
+                const prodMarca = normalizeText(product.marca);
+                const prodTipo = normalizeText(product.tipo);
+
+                // Comparación: nombre SIEMPRE + marca + tipo
+                const nombreMatch = prodNombre === nombreNorm;
+                const marcaMatch = prodMarca === marcaNorm;
+                const tipoMatch = prodTipo === tipoNorm;
+
+                const matches = nombreMatch && marcaMatch && tipoMatch;
+
+                if (nombreMatch) {
+                    console.log(`  🔎 Comparando con "${product.nombre}" (ID: ${product.id}):`);
+                    console.log(`     Nombre: "${prodNombre}" === "${nombreNorm}" → ${nombreMatch}`);
+                    console.log(`     Marca:  "${prodMarca}" === "${marcaNorm}" → ${marcaMatch}`);
+                    console.log(`     Tipo:   "${prodTipo}" === "${tipoNorm}" → ${tipoMatch}`);
+                    console.log(`     MATCH TOTAL: ${matches}`);
+                }
+
+                return matches;
+            });
+
+            console.log(existingProduct ? `✅ DUPLICADO ENCONTRADO: ${existingProduct.id}` : '🆕 NO HAY DUPLICADOS, CREAR NUEVO');
+
+            if (existingProduct) {
+                // 3) Ya existe → actualizar cantidad
+                const cantidadActual = existingProduct.cantidad ?? 0;
+                const cantidadNueva = productData.cantidad ?? 0;
+                const nuevaCantidad = cantidadActual + cantidadNueva;
+
+                const { data: updated, error: updateError } = await supabase
+                    .from('productos')
+                    .update({
+                        cantidad: nuevaCantidad,
+                        fecha_actualizacion: new Date().toISOString()
+                    })
+                    .eq('id', existingProduct.id)
+                    .select()
+                    .single();
+
+                if (updateError) {
+                    throw new AppError(
+                        'Error al actualizar la cantidad del producto existente',
+                        updateError
+                    );
+                }
+
+                return updated as Producto;
+            }
+
+            // 4) No existe → crear producto nuevo
+            const claveTrim = productData.clave?.trim();
+            if (!claveTrim) {
+                throw new AppError('La clave es requerida para un nuevo producto');
+            }
+
             const { data, error } = await supabase
                 .from('productos')
-                .insert([productData])
+                .insert([{
+                    ...productData,
+                    clave: claveTrim,
+                    nombre: productData.nombre.trim(),
+                    marca: productData.marca?.trim() || null,
+                    tipo: productData.tipo?.trim() || null
+                }])
                 .select()
                 .single();
 
@@ -113,7 +211,7 @@ export class ProductService {
                 throw new AppError('Error al crear el producto', error);
             }
 
-            return data;
+            return data as Producto;
         } catch (error) {
             if (error instanceof AppError) throw error;
             throw new AppError('Error inesperado al crear el producto', error);
@@ -142,7 +240,7 @@ export class ProductService {
                 throw new AppError('Error al actualizar el producto', error);
             }
 
-            return data;
+            return data as Producto;
         } catch (error) {
             if (error instanceof AppError) throw error;
             throw new AppError('Error inesperado al actualizar el producto', error);
@@ -173,14 +271,12 @@ export class ProductService {
      */
     static async generateQR(id: string): Promise<string> {
         try {
-            // La URL a la que apuntará el QR (vista pública del producto)
             const targetUrl = `${window.location.origin}/empleado/${id}`;
 
-            // Generar la URL de la IMAGEN del QR usando una API pública
-            // Esto es necesario porque <img src="..."> espera una imagen, no una página web
-            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+                targetUrl
+            )}`;
 
-            // Actualizar el producto con la URL de la IMAGEN del QR
             const { error } = await supabase
                 .from('productos')
                 .update({ qr_url: qrImageUrl })
