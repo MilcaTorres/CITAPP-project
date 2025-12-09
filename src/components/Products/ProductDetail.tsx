@@ -5,20 +5,30 @@ import { useAuth } from '../../contexts/AuthContext';
 import type { ProductWithRelations } from '../../models/product.model';
 import { Producto } from '../../types';
 import { ProductForm } from './ProductForm';
+import { ConfirmDeleteProductModal } from './ConfirmDeleteProductModal';
 
 interface ProductDetailProps {
   producto: Producto | ProductWithRelations;
   onBack: () => void;
   onGenerateQR: () => void;
   onDelete: () => void;
+  onUpdated: () => void;
   readOnly?: boolean;
 }
 
-export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOnly = false }: ProductDetailProps) {
+export function ProductDetail({ 
+  producto, 
+  onBack, 
+  onGenerateQR, 
+  onDelete, 
+  onUpdated,
+  readOnly = false 
+}: ProductDetailProps) {
   const { isAdmin } = useAuth();
 
-  // Nuevo: estado del modal INTERNAMENTE
   const [showForm, setShowForm] = useState(false);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleExportQRPDF = () => {
     if (!producto.qr_url) return;
@@ -155,7 +165,7 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOn
               </button>
 
               <button
-                onClick={onDelete}
+                onClick={() => setShowDeleteModal(true)}
                 className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
               >
                 <Trash2 className="w-5 h-5" />
@@ -165,15 +175,27 @@ export function ProductDetail({ producto, onBack, onGenerateQR, onDelete, readOn
         </div>
       </div>
 
-      {/*  Modal dentro de la vista de detalle */}
+      {/*  Modal de editar */}
       {showForm && (
         <ProductForm
           producto={producto}
           onClose={() => setShowForm(false)}
           onSave={() => {
             setShowForm(false);
-            //  Opcional: recargar datos desde la vista padre si quieres
+            onUpdated();
           }}
+        />
+      )}
+
+      {/*  Modal de confirmar eliminación */}
+      {showDeleteModal && (
+        <ConfirmDeleteProductModal
+        producto={producto}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          onDelete();
+        }}
         />
       )}
     </div>
