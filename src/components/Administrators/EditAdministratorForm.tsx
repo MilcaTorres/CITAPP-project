@@ -7,6 +7,7 @@ import {
   validateName,
   ValidationError,
 } from "../../utils/formValidation";
+import AlertMessage from "../AlertMessage";
 
 interface EditAdministratorFormProps {
   usuario: Usuario;
@@ -31,6 +32,7 @@ export function EditAdministratorForm({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [alertData, setAlertData] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Validación en tiempo real cuando el usuario sale del campo
   const handleBlur = (field: string) => {
@@ -96,7 +98,10 @@ export function EditAdministratorForm({
       onSave();
     } catch (error: any) {
       console.error("Error updating user:", error);
-      alert(error.message || "Error al actualizar el usuario");
+      setAlertData({
+        type: "error",
+        message: error.message || "Error al actualizar el usuario"
+      });
     } finally {
       setLoading(false);
     }
@@ -116,107 +121,114 @@ export function EditAdministratorForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-primary rounded-lg shadow-xl max-w-md w-full">
-        <div className="px-8 py-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">
-            Editar {usuario.rol === 'admin' ? 'Administrador' : 'Empleado'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-white hover:text-gray-300 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+    <>
+      {alertData && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999]">
+          <AlertMessage type={alertData.type} message={alertData.message} />
         </div>
-
-        <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm font-normal text-white mb-2">
-              Nombre(s)
-            </label>
-            <input
-              type="text"
-              value={formData.nombre}
-              onChange={(e) => {
-                // Solo permitir letras, espacios y acentos (sin números)
-                const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
-                setFormData({ ...formData, nombre: sanitized });
-                if (touched.nombre) validateField("nombre");
-              }}
-              onBlur={() => handleBlur("nombre")}
-              className={getInputClasses("nombre")}
-              placeholder="Nombre(s)"
-            />
-            {touched.nombre && errors.nombre && (
-              <div className="flex items-center mt-1 text-red-400 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                <span>{errors.nombre}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Apellidos */}
-          <div>
-            <label className="block text-sm font-normal text-white mb-2">
-              Apellido(s)
-            </label>
-            <input
-              type="text"
-              value={formData.apellidos}
-              onChange={(e) => {
-                // Solo permitir letras, espacios y acentos (sin números)
-                const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
-                setFormData({ ...formData, apellidos: sanitized });
-                if (touched.apellidos) validateField("apellidos");
-              }}
-              onBlur={() => handleBlur("apellidos")}
-              className={getInputClasses("apellidos")}
-              placeholder="Apellido(s)"
-            />
-            {touched.apellidos && errors.apellidos && (
-              <div className="flex items-center mt-1 text-red-400 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                <span>{errors.apellidos}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Código de Empleado (Solo lectura) */}
-          {usuario.rol === 'empleado' && usuario.codigo && (
-            <div className="bg-white/10 p-4 rounded-lg border border-white/20">
-              <label className="block text-sm font-bold text-white mb-2">
-                Código de Empleado
-              </label>
-              <div className="text-2xl font-mono font-bold text-yellow-400 tracking-widest">
-                {usuario.codigo}
-              </div>
-              <p className="text-xs text-gray-300 mt-2">
-                Este código no se puede modificar.
-              </p>
-            </div>
-          )}
-
-          {/* Botones */}
-          <div className="flex justify-end space-x-4 pt-6">
+      )}
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-primary rounded-lg shadow-xl max-w-md w-full">
+          <div className="px-8 py-6 flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-white">
+              Editar {usuario.rol === 'admin' ? 'Administrador' : 'Empleado'}
+            </h2>
             <button
-              type="button"
               onClick={onClose}
-              className="px-8 py-2 text-white hover:bg-gray-700 transition-colors rounded-lg"
+              className="text-white hover:text-gray-300 transition-colors"
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Guardando..." : "Aceptar"}
+              <X className="w-6 h-6" />
             </button>
           </div>
-        </form>
+
+          <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
+            {/* Nombre */}
+            <div>
+              <label className="block text-sm font-normal text-white mb-2">
+                Nombre(s)
+              </label>
+              <input
+                type="text"
+                value={formData.nombre}
+                onChange={(e) => {
+                  // Solo permitir letras, espacios y acentos (sin números)
+                  const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                  setFormData({ ...formData, nombre: sanitized });
+                  if (touched.nombre) validateField("nombre");
+                }}
+                onBlur={() => handleBlur("nombre")}
+                className={getInputClasses("nombre")}
+                placeholder="Nombre(s)"
+              />
+              {touched.nombre && errors.nombre && (
+                <div className="flex items-center mt-1 text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  <span>{errors.nombre}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Apellidos */}
+            <div>
+              <label className="block text-sm font-normal text-white mb-2">
+                Apellido(s)
+              </label>
+              <input
+                type="text"
+                value={formData.apellidos}
+                onChange={(e) => {
+                  // Solo permitir letras, espacios y acentos (sin números)
+                  const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                  setFormData({ ...formData, apellidos: sanitized });
+                  if (touched.apellidos) validateField("apellidos");
+                }}
+                onBlur={() => handleBlur("apellidos")}
+                className={getInputClasses("apellidos")}
+                placeholder="Apellido(s)"
+              />
+              {touched.apellidos && errors.apellidos && (
+                <div className="flex items-center mt-1 text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  <span>{errors.apellidos}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Código de Empleado (Solo lectura) */}
+            {usuario.rol === 'empleado' && usuario.codigo && (
+              <div className="bg-white/10 p-4 rounded-lg border border-white/20">
+                <label className="block text-sm font-bold text-white mb-2">
+                  Código de Empleado
+                </label>
+                <div className="text-2xl font-mono font-bold text-yellow-400 tracking-widest">
+                  {usuario.codigo}
+                </div>
+                <p className="text-xs text-gray-300 mt-2">
+                  Este código no se puede modificar.
+                </p>
+              </div>
+            )}
+
+            {/* Botones */}
+            <div className="flex justify-end space-x-4 pt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-8 py-2 text-white hover:bg-gray-700 transition-colors rounded-lg"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? "Guardando..." : "Aceptar"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
