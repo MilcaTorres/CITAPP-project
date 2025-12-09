@@ -2,6 +2,7 @@ import { AlertCircle, CheckCircle, Loader, X } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Producto } from '../../types';
+import { sanitizeObservations } from '../../utils/formValidation';
 
 interface EmployeeReportFormProps {
     producto: Producto;
@@ -145,14 +146,15 @@ export function EmployeeReportForm({ producto, onClose, onSuccess }: EmployeeRep
                     {/* Observaciones */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Observaciones
+                            Observaciones *
                         </label>
                         <textarea
+                            required
                             value={observaciones}
-                            onChange={(e) => setObservaciones(e.target.value)}
+                            onChange={(e) => setObservaciones(sanitizeObservations(e.target.value))}
                             rows={3}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                            placeholder="Notas adicionales (opcional)"
+                            placeholder="Notas adicionales"
                             disabled={loading || success}
                         />
                     </div>

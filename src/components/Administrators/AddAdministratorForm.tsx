@@ -9,6 +9,7 @@ import {
   validateName,
   ValidationError,
 } from "../../utils/formValidation";
+import AlertMessage from "../AlertMessage";
 
 interface AddAdministratorFormProps {
   onClose: () => void;
@@ -39,6 +40,14 @@ export function AddAdministratorForm({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [alertData, setAlertData] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    if (alertData) {
+      const timer = setTimeout(() => setAlertData(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alertData]);
 
   useEffect(() => {
     if (formData.rol === 'empleado' && !formData.codigo) {
@@ -171,7 +180,10 @@ export function AddAdministratorForm({
       onSave();
     } catch (error: any) {
       console.error("Error saving user:", error);
-      alert(error.message || "Error al guardar el usuario");
+      setAlertData({
+        type: "error",
+        message: error.message || "Error al guardar el usuario"
+      });
     } finally {
       setLoading(false);
     }
@@ -191,195 +203,206 @@ export function AddAdministratorForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-primary rounded-lg shadow-xl max-w-2xl w-full">
-        <div className="px-8 py-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">
-            Agregar {formData.rol === 'admin' ? 'Administrador' : 'Empleado'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-white hover:text-gray-300 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+    <>
+      {alertData && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999]">
+          <AlertMessage type={alertData.type} message={alertData.message} />
         </div>
-
-        <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
-          {/* Selector de Rol */}
-          <div className="flex space-x-4 mb-4">
-            <label className="flex items-center space-x-2 text-white cursor-pointer">
-              <input
-                type="radio"
-                checked={formData.rol === 'admin'}
-                onChange={() => setFormData({ ...formData, rol: 'admin', codigo: '' })}
-                className="form-radio text-red-600"
-              />
-              <span>Administrador</span>
-            </label>
-            <label className="flex items-center space-x-2 text-white cursor-pointer">
-              <input
-                type="radio"
-                checked={formData.rol === 'empleado'}
-                onChange={() => setFormData({ ...formData, rol: 'empleado' })}
-                className="form-radio text-red-600"
-              />
-              <span>Empleado</span>
-            </label>
+      )}
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-primary rounded-lg shadow-xl max-w-2xl w-full">
+          <div className="px-8 py-6 flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-white">
+              Agregar {formData.rol === 'admin' ? 'Administrador' : 'Empleado'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-300 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
 
-          {/* Grid de 2 columnas para los campos */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Nombre */}
-            <div>
-              <label className="block text-sm font-normal text-white mb-2">
-                Nombre(s)
+          <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
+            {/* Selector de Rol */}
+            <div className="flex space-x-4 mb-4">
+              <label className="flex items-center space-x-2 text-white cursor-pointer">
+                <input
+                  type="radio"
+                  checked={formData.rol === 'admin'}
+                  onChange={() => setFormData({ ...formData, rol: 'admin', codigo: '' })}
+                  className="form-radio text-red-600"
+                />
+                <span>Administrador</span>
               </label>
-              <input
-                type="text"
-                value={formData.nombre}
-                onChange={(e) => {
-                  setFormData({ ...formData, nombre: e.target.value });
-                  if (touched.nombre) validateField("nombre");
-                }}
-                onBlur={() => handleBlur("nombre")}
-                className={getInputClasses("nombre")}
-                placeholder="Nombre(s)"
-              />
-              {touched.nombre && errors.nombre && (
-                <div className="flex items-center mt-1 text-red-400 text-sm">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  <span>{errors.nombre}</span>
-                </div>
-              )}
+              <label className="flex items-center space-x-2 text-white cursor-pointer">
+                <input
+                  type="radio"
+                  checked={formData.rol === 'empleado'}
+                  onChange={() => setFormData({ ...formData, rol: 'empleado' })}
+                  className="form-radio text-red-600"
+                />
+                <span>Empleado</span>
+              </label>
             </div>
 
-            {/* Apellidos */}
-            <div>
-              <label className="block text-sm font-normal text-white mb-2">
-                Apellido(s)
-              </label>
-              <input
-                type="text"
-                value={formData.apellidos}
-                onChange={(e) => {
-                  setFormData({ ...formData, apellidos: e.target.value });
-                  if (touched.apellidos) validateField("apellidos");
-                }}
-                onBlur={() => handleBlur("apellidos")}
-                className={getInputClasses("apellidos")}
-                placeholder="Apellido(s)"
-              />
-              {touched.apellidos && errors.apellidos && (
-                <div className="flex items-center mt-1 text-red-400 text-sm">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  <span>{errors.apellidos}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-normal text-white mb-2">
-                Correo Electronico
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => {
-                  setFormData({ ...formData, email: e.target.value });
-                  if (touched.email) validateField("email");
-                  if (touched.confirmEmail) validateField("confirmEmail");
-                }}
-                onBlur={() => handleBlur("email")}
-                className={getInputClasses("email")}
-                placeholder="Correo Electronico"
-              />
-              {touched.email && errors.email && (
-                <div className="flex items-center mt-1 text-red-400 text-sm">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  <span>{errors.email}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Confirmar Email */}
-            <div>
-              <label className="block text-sm font-normal text-white mb-2">
-                Confirmar Correo
-              </label>
-              <input
-                type="email"
-                value={formData.confirmEmail}
-                onChange={(e) => {
-                  setFormData({ ...formData, confirmEmail: e.target.value });
-                  if (touched.confirmEmail) validateField("confirmEmail");
-                }}
-                onBlur={() => handleBlur("confirmEmail")}
-                className={getInputClasses("confirmEmail")}
-                placeholder="Confirmar Correo"
-              />
-              {touched.confirmEmail && errors.confirmEmail && (
-                <div className="flex items-center mt-1 text-red-400 text-sm">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  <span>{errors.confirmEmail}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Código de Empleado (Solo si es empleado) */}
-          {formData.rol === 'empleado' && (
-            <div className="bg-white/10 p-4 rounded-lg border border-white/20">
-              <label className="block text-sm font-bold text-white mb-2">
-                Código de Empleado Generado
-              </label>
-              <div className="flex items-center space-x-4">
-                <div className="text-3xl font-mono font-bold text-yellow-400 tracking-widest">
-                  {formData.codigo}
-                </div>
-                <button
-                  type="button"
-                  onClick={generateEmployeeCode}
-                  className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
-                  title="Generar nuevo código"
-                >
-                  <RefreshCw className="w-5 h-5" />
-                </button>
+            {/* Grid de 2 columnas para los campos */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Nombre */}
+              <div>
+                <label className="block text-sm font-normal text-white mb-2">
+                  Nombre(s)*
+                </label>
+                <input
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => {
+                    // Solo permitir letras, espacios y acentos (sin números)
+                    const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                    setFormData({ ...formData, nombre: sanitized });
+                    if (touched.nombre) validateField("nombre");
+                  }}
+                  onBlur={() => handleBlur("nombre")}
+                  className={getInputClasses("nombre")}
+                  placeholder="Nombre(s)"
+                />
+                {touched.nombre && errors.nombre && (
+                  <div className="flex items-center mt-1 text-red-400 text-sm">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    <span>{errors.nombre}</span>
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-gray-300 mt-2">
-                Este código será necesario para que el empleado envíe verificaciones.
+
+              {/* Apellidos */}
+              <div>
+                <label className="block text-sm font-normal text-white mb-2">
+                  Apellido(s)*
+                </label>
+                <input
+                  type="text"
+                  value={formData.apellidos}
+                  onChange={(e) => {
+                    // Solo permitir letras, espacios y acentos (sin números)
+                    const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                    setFormData({ ...formData, apellidos: sanitized });
+                    if (touched.apellidos) validateField("apellidos");
+                  }}
+                  onBlur={() => handleBlur("apellidos")}
+                  className={getInputClasses("apellidos")}
+                  placeholder="Apellido(s)"
+                />
+                {touched.apellidos && errors.apellidos && (
+                  <div className="flex items-center mt-1 text-red-400 text-sm">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    <span>{errors.apellidos}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-normal text-white mb-2">
+                  Correo Electronico*
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (touched.email) validateField("email");
+                    if (touched.confirmEmail) validateField("confirmEmail");
+                  }}
+                  onBlur={() => handleBlur("email")}
+                  className={getInputClasses("email")}
+                  placeholder="Correo Electronico"
+                />
+                {touched.email && errors.email && (
+                  <div className="flex items-center mt-1 text-red-400 text-sm">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    <span>{errors.email}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirmar Email */}
+              <div>
+                <label className="block text-sm font-normal text-white mb-2">
+                  Confirmar Correo Electronico*
+                </label>
+                <input
+                  type="email"
+                  value={formData.confirmEmail}
+                  onChange={(e) => {
+                    setFormData({ ...formData, confirmEmail: e.target.value });
+                    if (touched.confirmEmail) validateField("confirmEmail");
+                  }}
+                  onBlur={() => handleBlur("confirmEmail")}
+                  className={getInputClasses("confirmEmail")}
+                  placeholder="Confirmar Correo"
+                />
+                {touched.confirmEmail && errors.confirmEmail && (
+                  <div className="flex items-center mt-1 text-red-400 text-sm">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    <span>{errors.confirmEmail}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Código de Empleado (Solo si es empleado) */}
+            {formData.rol === 'empleado' && (
+              <div className="bg-white/10 p-4 rounded-lg border border-white/20">
+                <label className="block text-sm font-bold text-white mb-2">
+                  Código de Empleado Generado
+                </label>
+                <div className="flex items-center space-x-4">
+                  <div className="text-3xl font-mono font-bold text-yellow-400 tracking-widest">
+                    {formData.codigo}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateEmployeeCode}
+                    className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                    title="Generar nuevo código"
+                  >
+                    <RefreshCw className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-300 mt-2">
+                  Este código será necesario para que el empleado envíe verificaciones.
+                </p>
+              </div>
+            )}
+
+            {/* Nota informativa */}
+            <div className="bg-blue-900 bg-opacity-30 border border-blue-400 rounded-lg p-3">
+              <p className="text-blue-200 text-sm">
+                <strong>Nota:</strong> La contraseña inicial será el mismo correo
+                electrónico. El usuario podrá cambiarla después.
               </p>
             </div>
-          )}
 
-          {/* Nota informativa */}
-          <div className="bg-blue-900 bg-opacity-30 border border-blue-400 rounded-lg p-3">
-            <p className="text-blue-200 text-sm">
-              <strong>Nota:</strong> La contraseña inicial será el mismo correo
-              electrónico. El usuario podrá cambiarla después.
-            </p>
-          </div>
-
-          {/* Botones */}
-          <div className="flex justify-end space-x-4 pt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-8 py-2 text-white hover:bg-gray-700 transition-colors rounded-lg"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Guardando..." : "Aceptar"}
-            </button>
-          </div>
-        </form>
+            {/* Botones */}
+            <div className="flex justify-end space-x-4 pt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-8 py-2 text-white hover:bg-gray-700 transition-colors rounded-lg"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? "Guardando..." : "Aceptar"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

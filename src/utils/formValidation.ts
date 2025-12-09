@@ -156,3 +156,115 @@ export const validateAdministratorForm = (formData: {
     errors,
   };
 };
+
+/**
+ * Sanitiza texto para que solo contenga letras, números, espacios y acentos
+ */
+export const sanitizeAlphanumeric = (text: string): string => {
+  // Permite letras (incluyendo acentos), números, espacios
+  return text.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+};
+
+/**
+ * Sanitiza texto para que solo contenga números
+ */
+export const sanitizeNumeric = (text: string): string => {
+  return text.replace(/\D/g, '');
+};
+
+/**
+ * Sanitiza observaciones permitiendo puntuación básica
+ */
+export const sanitizeObservations = (text: string): string => {
+  // Permite letras, números, espacios, acentos y puntuación básica: . , ; : ! ? -
+  return text.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,;:!?\-]/g, '');
+};
+
+/**
+ * Valida que el nombre del producto solo contenga caracteres permitidos
+ */
+export const validateProductName = (name: string): ValidationError | null => {
+  if (!name || name.trim().length === 0) {
+    return { field: "nombre", message: "El nombre del producto es requerido" };
+  }
+
+  // Permite letras, números, espacios y acentos
+  const productNameRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+
+  if (!productNameRegex.test(name)) {
+    return {
+      field: "nombre",
+      message: "El nombre solo puede contener letras, números y espacios",
+    };
+  }
+
+  if (name.trim().length < 2) {
+    return {
+      field: "nombre",
+      message: "El nombre debe tener al menos 2 caracteres",
+    };
+  }
+
+  return null;
+};
+
+/**
+ * Valida que la marca solo contenga caracteres permitidos
+ */
+export const validateBrand = (brand: string): ValidationError | null => {
+  if (!brand || brand.trim().length === 0) {
+    return null; // La marca es opcional
+  }
+
+  const brandRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+
+  if (!brandRegex.test(brand)) {
+    return {
+      field: "marca",
+      message: "La marca solo puede contener letras, números y espacios",
+    };
+  }
+
+  return null;
+};
+
+/**
+ * Valida que el tipo solo contenga caracteres permitidos
+ */
+export const validateProductType = (type: string): ValidationError | null => {
+  if (!type || type.trim().length === 0) {
+    return null; // El tipo es opcional
+  }
+
+  const typeRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+
+  if (!typeRegex.test(type)) {
+    return {
+      field: "tipo",
+      message: "El tipo solo puede contener letras, números y espacios",
+    };
+  }
+
+  return null;
+};
+
+/**
+ * Valida que las observaciones solo contengan caracteres permitidos
+ */
+export const validateObservations = (observations: string): ValidationError | null => {
+  if (!observations || observations.trim().length === 0) {
+    return null; // Las observaciones son opcionales
+  }
+
+  // Permite letras, números, espacios, acentos y puntuación básica
+  const observationsRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,;:!?\-]+$/;
+
+  if (!observationsRegex.test(observations)) {
+    return {
+      field: "observaciones",
+      message: "Las observaciones contienen caracteres no permitidos",
+    };
+  }
+
+  return null;
+};

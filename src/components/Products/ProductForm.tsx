@@ -5,6 +5,7 @@ import type { ProductWithRelations } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { Categoria, Producto, Ubicacion } from '../../types';
 import { handleError } from '../../utils/error-handler';
+import { sanitizeAlphanumeric } from '../../utils/formValidation';
 
 
 interface ProductFormProps {
@@ -144,7 +145,7 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
                 type="text"
                 required
                 value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, nombre: sanitizeAlphanumeric(e.target.value) })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Nombre del producto"
               />
@@ -152,12 +153,13 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Marca
+                Marca *
               </label>
               <input
                 type="text"
+                required
                 value={formData.marca}
-                onChange={(e) => setFormData({ ...formData, marca: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, marca: sanitizeAlphanumeric(e.target.value) })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Marca del producto"
               />
@@ -165,12 +167,13 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo
+                Tipo *
               </label>
               <input
                 type="text"
+                required
                 value={formData.tipo}
-                onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, tipo: sanitizeAlphanumeric(e.target.value) })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Tipo de producto"
               />
@@ -185,7 +188,7 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
                 required
                 min="0"
                 value={formData.cantidad}
-                onChange={(e) => setFormData({ ...formData, cantidad: e.target.value.replace(/^0+(?=\d)/, "")})}
+                onChange={(e) => setFormData({ ...formData, cantidad: e.target.value.replace(/^0+(?=\d)/, "") })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -206,7 +209,7 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoría
+                Categoría *
               </label>
               <select
                 value={formData.categoria_id}
@@ -224,7 +227,7 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ubicación
+                Ubicación *
               </label>
               <select
                 value={formData.ubicacion_id}

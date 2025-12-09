@@ -197,9 +197,10 @@ export function EmployeeProductDetail({ producto, onBack, onSuccess }: EmployeeP
                         {/* Observaciones */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Observaciones
+                                Observaciones *
                             </label>
                             <textarea
+                                required
                                 value={observaciones}
                                 onChange={(e) => setObservaciones(e.target.value)}
                                 rows={3}
