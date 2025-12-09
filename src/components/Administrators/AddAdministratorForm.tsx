@@ -239,7 +239,9 @@ export function AddAdministratorForm({
                 type="text"
                 value={formData.nombre}
                 onChange={(e) => {
-                  setFormData({ ...formData, nombre: e.target.value });
+                  // Solo permitir letras, espacios y acentos (sin números)
+                  const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                  setFormData({ ...formData, nombre: sanitized });
                   if (touched.nombre) validateField("nombre");
                 }}
                 onBlur={() => handleBlur("nombre")}
@@ -263,7 +265,9 @@ export function AddAdministratorForm({
                 type="text"
                 value={formData.apellidos}
                 onChange={(e) => {
-                  setFormData({ ...formData, apellidos: e.target.value });
+                  // Solo permitir letras, espacios y acentos (sin números)
+                  const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                  setFormData({ ...formData, apellidos: sanitized });
                   if (touched.apellidos) validateField("apellidos");
                 }}
                 onBlur={() => handleBlur("apellidos")}
