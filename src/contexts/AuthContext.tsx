@@ -39,20 +39,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ======================================================
   */
   useEffect(() => {
+    let isInitialLoad = true;
+
     const initAuth = async () => {
       try {
+        console.log("🔍 [AuthContext] Iniciando autenticación...");
         const { user: currentUser, usuario: userData } = await AuthService.getCurrentUser();
+        console.log("🔍 [AuthContext] Usuario obtenido:", { user: !!currentUser, usuario: userData });
         setUser(currentUser);
         setUsuario(userData);
         lastUserId.current = currentUser?.id ?? null;
       } catch (err) {
         // Solo loguear errores inesperados, getCurrentUser ya maneja no-sesión
-        console.error("Error inesperado al inicializar auth:", err);
+        console.error("❌ [AuthContext] Error inesperado al inicializar auth:", err);
         setUser(null);
         setUsuario(null);
         lastUserId.current = null;
       } finally {
+        console.log("✅ [AuthContext] Carga inicial completada, loading = false");
         setLoading(false);
+        // Marcar que la carga inicial terminó después de un pequeño delay
+        setTimeout(() => {
+          isInitialLoad = false;
+        }, 100);
       }
     };
 
@@ -61,20 +70,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("🔄 [AuthContext] Auth state changed:", _event, "isInitialLoad:", isInitialLoad);
+
+      // Ignorar el primer evento SIGNED_IN que ocurre inmediatamente después de initAuth
+      if (isInitialLoad && _event === 'SIGNED_IN') {
+        console.log("🔄 [AuthContext] Ignorando SIGNED_IN inicial para evitar doble carga");
+        return;
+      }
+
       const currentUser = session?.user ?? null;
       setUser(currentUser);
 
       // Si el usuario cambió (o es el inicio), cargar datos
       if (currentUser && currentUser.id !== lastUserId.current) {
+        console.log("🔄 [AuthContext] Nuevo usuario detectado, cargando datos...");
         setLoading(true);
         lastUserId.current = currentUser.id;
         await loadUsuario(currentUser.id);
       }
       // Si no hay usuario, limpiar todo
       else if (!currentUser) {
+        console.log("🔄 [AuthContext] No hay usuario, limpiando...");
         setUsuario(null);
         setLoading(false);
         lastUserId.current = null;
+      } else {
+        console.log("🔄 [AuthContext] Mismo usuario, no se hace nada");
       }
       // Si es el mismo usuario, no hacemos nada (evita loading al cambiar de pestaña)
     });
@@ -136,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const RETRY_DELAY = 1000; // 1 second
 
     try {
+      console.log(`🔍 [loadUsuario] Cargando usuario ${userId}, intento ${retryCount + 1}/${MAX_RETRIES + 1}`);
       const { data, error } = await supabase
         .from("usuarios")
         .select("*")
@@ -147,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // If user not found and we haven't exceeded retries, try again
       if (!data && retryCount < MAX_RETRIES) {
         console.log(
-          `Usuario no encontrado, reintentando... (${retryCount + 1
+          `⚠️ [loadUsuario] Usuario no encontrado, reintentando... (${retryCount + 1
           }/${MAX_RETRIES})`
         );
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
@@ -158,8 +180,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // false = no existe
       // Usuario = existe
       if (!data) {
+        console.warn("❌ [loadUsuario] Usuario no encontrado después de reintentos, estableciendo false");
         setUsuario(false);
       } else {
+        console.log("✅ [loadUsuario] Usuario cargado exitosamente:", data.email);
         setUsuario(data);
       }
 
@@ -169,9 +193,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
     } catch (err: any) {
-      console.error("Error al cargar usuario:", err.message || err);
+      console.error("❌ [loadUsuario] Error al cargar usuario:", err.message || err);
       setUsuario(null);
     } finally {
+      console.log("✅ [loadUsuario] Finalizando carga, loading = false");
       setLoading(false);
     }
   };
