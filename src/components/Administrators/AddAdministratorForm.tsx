@@ -251,7 +251,7 @@ export function AddAdministratorForm({
               {/* Nombre */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Nombre(s)
+                  Nombre(s)*
                 </label>
                 <input
                   type="text"
@@ -277,7 +277,7 @@ export function AddAdministratorForm({
               {/* Apellidos */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Apellido(s)
+                  Apellido(s)*
                 </label>
                 <input
                   type="text"
@@ -303,7 +303,7 @@ export function AddAdministratorForm({
               {/* Email */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Correo Electronico
+                  Correo Electronico*
                 </label>
                 <input
                   type="email"
@@ -328,7 +328,7 @@ export function AddAdministratorForm({
               {/* Confirmar Email */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Confirmar Correo
+                  Confirmar Correo Electronico*
                 </label>
                 <input
                   type="email"

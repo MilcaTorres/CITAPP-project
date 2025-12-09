@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
-    const TIMEOUT_MS = 2 * 60 * 1000; // 2 minutos
+    const TIMEOUT_MS = 5 * 60 * 1000; // 5 minutos
     let timeoutId: NodeJS.Timeout;
 
     const resetTimer = () => {
