@@ -3,13 +3,14 @@ import { useAuth } from '../../contexts/AuthContext';
 
 interface HeaderProps {
   onProfileClick: () => void;
+  className?: string;
 }
 
-export function Header({ onProfileClick }: HeaderProps) {
+export function Header({ onProfileClick, className = "" }: HeaderProps) {
   const { usuario } = useAuth();
 
   return (
-    <header className="bg-primary text-white px-8 py-4 flex justify-between items-center">
+    <header className={`bg-primary text-white px-8 py-4 flex justify-between items-center ${className}`}>
       <div>
         <h1 className="text-2xl font-bold">CITAPP</h1>
         <p className="text-sm text-gray-400">Control de Inventario con Tecnología de Aplicación</p>

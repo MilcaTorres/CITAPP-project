@@ -11,16 +11,19 @@ export default function MainLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar con navegación interna */}
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar fijo con navegación interna */}
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
-        {/* Header superior */}
-        <Header onProfileClick={() => navigate("/perfil")} />
+        {/* Header fijo superior */}
+        <Header
+          onProfileClick={() => navigate("/perfil")}
+          className="sticky top-0 z-10"
+        />
 
         {/* Contenido dinámico de la ruta */}
-        <main className="p-8 flex-1 bg-secondary overflow-y-auto">
+        <main className="flex-1 overflow-auto bg-secondary p-8">
           <Outlet />
         </main>
 
