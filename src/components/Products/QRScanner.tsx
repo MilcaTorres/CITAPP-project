@@ -73,12 +73,28 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     inversionAttempts: "dontInvert",
   });
 
-  if (code && code.data) {
-    scanningRef.current = false;
-    onScan(code.data);   //QR leído correctamente
-    onClose();           //Cerrar modal
-    return;
-  }
+ if (code && code.data) {
+  scanningRef.current = false;
+
+  const rawValue = code.data.trim().replace(/\s+/g, '');
+
+let finalValue = rawValue;
+
+// Si es una URL, extraer solo el ID
+if (rawValue.includes('/empleado/')) {
+  finalValue = rawValue.split('/empleado/')[1];
+}
+
+console.log("QR limpio:", finalValue);
+onScan(finalValue);
+
+
+
+  
+  onClose();
+  return;
+}
+
 
   requestAnimationFrame(tick);
 };
