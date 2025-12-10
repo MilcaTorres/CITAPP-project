@@ -11,11 +11,10 @@ import { ProductsView } from "./components/Products/ProductsView";
 import { ProfileView } from "./components/Profile/ProfileView";
 import { ReportsView } from "./components/Reports/ReportsViews";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthCallback } from "./Routes/AuthCallback";
 import PrivateRoute from "./Routes/PrivateRoute";
 import { ProtectedRoute } from "./Routes/ProtectedRoute";
-
-
 
 // 🔒 Componente para proteger rutas según el rol admin
 function AdminRoute({ children }: { children: JSX.Element }) {
@@ -26,57 +25,57 @@ function AdminRoute({ children }: { children: JSX.Element }) {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <LanguageProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Ruta pública */}
+            {/* Landing Page - pero también maneja OAuth callback si viene de Google */}
+            <Route path="/" element={<AuthCallback />} />
 
-          {/* Ruta pública */}
-          {/* Landing Page - pero también maneja OAuth callback si viene de Google */}
-          <Route path="/" element={<AuthCallback />} />
+            {/* Ruta pública de Login */}
+            <Route path="/login" element={<LoginView />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/forgot-password" element={<ForgotPasswordView />} />
+            <Route path="/empleado" element={<EmployeeView />} />
 
-          {/* Ruta pública de Login */}
-          <Route path="/login" element={<LoginView />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/forgot-password" element={<ForgotPasswordView />} />
-          <Route path="/empleado" element={<EmployeeView />} />
+            <Route path="/empleados" element={<PublicLayout />}>
+              <Route index element={<EmployeeView />} />
+            </Route>
 
-          <Route path="/empleados" element={<PublicLayout />}>
-            <Route index element={<EmployeeView />} />
-          </Route>
-
-          {/* Rutas protegidas */}
-          <Route
-            element={
-              <PrivateRoute>
-                <MainLayout />
-              </PrivateRoute>
-            }
-          >
+            {/* Rutas protegidas */}
             <Route
-              path="/dashboard"
               element={
-                <ProtectedRoute>
-                  <DashboardView />
-                </ProtectedRoute>
+                <PrivateRoute>
+                  <MainLayout />
+                </PrivateRoute>
               }
-            />
-            <Route path="/productos" element={<ProductsView />} />
-            <Route
-              path="/administradores"
-              element={
-                <AdminRoute>
-                  <AdministratorsView />
-                </AdminRoute>
-              }
-            />
-            <Route path="reportes" element={<ReportsView />} />
-            <Route path="perfil" element={<ProfileView />} />
+            >
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardView />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/productos" element={<ProductsView />} />
+              <Route
+                path="/administradores"
+                element={
+                  <AdminRoute>
+                    <AdministratorsView />
+                  </AdminRoute>
+                }
+              />
+              <Route path="reportes" element={<ReportsView />} />
+              <Route path="perfil" element={<ProfileView />} />
+            </Route>
 
-          </Route>
-
-          {/* Ruta 404 */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Ruta 404 */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

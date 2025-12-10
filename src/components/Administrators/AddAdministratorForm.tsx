@@ -10,11 +10,12 @@ import {
   ValidationError,
 } from "../../utils/formValidation";
 import AlertMessage from "../AlertMessage";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface AddAdministratorFormProps {
   onClose: () => void;
   onSave: () => void;
-  initialRole?: 'admin' | 'empleado';
+  initialRole?: "admin" | "empleado";
 }
 
 interface FormErrors {
@@ -27,8 +28,9 @@ interface FormErrors {
 export function AddAdministratorForm({
   onClose,
   onSave,
-  initialRole = 'admin',
+  initialRole = "admin",
 }: AddAdministratorFormProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
@@ -40,7 +42,10 @@ export function AddAdministratorForm({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
-  const [alertData, setAlertData] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alertData, setAlertData] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (alertData) {
@@ -50,14 +55,14 @@ export function AddAdministratorForm({
   }, [alertData]);
 
   useEffect(() => {
-    if (formData.rol === 'empleado' && !formData.codigo) {
+    if (formData.rol === "empleado" && !formData.codigo) {
       generateEmployeeCode();
     }
   }, [formData.rol]);
 
   const generateEmployeeCode = () => {
     const code = Math.floor(10000 + Math.random() * 90000).toString();
-    setFormData(prev => ({ ...prev, codigo: code }));
+    setFormData((prev) => ({ ...prev, codigo: code }));
   };
 
   // Validación en tiempo real cuando el usuario sale del campo
@@ -148,16 +153,18 @@ export function AddAdministratorForm({
 
       if (authData.user) {
         // Verificar si el código ya existe (solo para empleados)
-        if (formData.rol === 'empleado') {
+        if (formData.rol === "empleado") {
           const { data: existingCode } = await supabase
-            .from('usuarios')
-            .select('id')
-            .eq('codigo', formData.codigo)
+            .from("usuarios")
+            .select("id")
+            .eq("codigo", formData.codigo)
             .single();
 
           if (existingCode) {
             // Si existe, generar uno nuevo y reintentar (simple retry logic)
-            const newCode = Math.floor(10000 + Math.random() * 90000).toString();
+            const newCode = Math.floor(
+              10000 + Math.random() * 90000
+            ).toString();
             formData.codigo = newCode;
           }
         }
@@ -170,7 +177,7 @@ export function AddAdministratorForm({
             apellidos: formData.apellidos,
             email: cleanEmail,
             activo: true,
-            codigo: formData.rol === 'empleado' ? formData.codigo : null,
+            codigo: formData.rol === "empleado" ? formData.codigo : null,
           },
         ]);
 
@@ -182,7 +189,7 @@ export function AddAdministratorForm({
       console.error("Error saving user:", error);
       setAlertData({
         type: "error",
-        message: error.message || "Error al guardar el usuario"
+        message: error.message || "Error al guardar el usuario",
       });
     } finally {
       setLoading(false);
@@ -213,7 +220,10 @@ export function AddAdministratorForm({
         <div className="bg-primary rounded-lg shadow-xl max-w-2xl w-full">
           <div className="px-8 py-6 flex justify-between items-center">
             <h2 className="text-2xl font-bold text-white">
-              Agregar {formData.rol === 'admin' ? 'Administrador' : 'Empleado'}
+              {t("administrators.addUser")}{" "}
+              {formData.rol === "admin"
+                ? t("administrators.administrator")
+                : t("administrators.employee")}
             </h2>
             <button
               onClick={onClose}
@@ -229,20 +239,22 @@ export function AddAdministratorForm({
               <label className="flex items-center space-x-2 text-white cursor-pointer">
                 <input
                   type="radio"
-                  checked={formData.rol === 'admin'}
-                  onChange={() => setFormData({ ...formData, rol: 'admin', codigo: '' })}
+                  checked={formData.rol === "admin"}
+                  onChange={() =>
+                    setFormData({ ...formData, rol: "admin", codigo: "" })
+                  }
                   className="form-radio text-red-600"
                 />
-                <span>Administrador</span>
+                <span>{t("administrators.administrator")}</span>
               </label>
               <label className="flex items-center space-x-2 text-white cursor-pointer">
                 <input
                   type="radio"
-                  checked={formData.rol === 'empleado'}
-                  onChange={() => setFormData({ ...formData, rol: 'empleado' })}
+                  checked={formData.rol === "empleado"}
+                  onChange={() => setFormData({ ...formData, rol: "empleado" })}
                   className="form-radio text-red-600"
                 />
-                <span>Empleado</span>
+                <span>{t("administrators.employee")}</span>
               </label>
             </div>
 
@@ -251,20 +263,23 @@ export function AddAdministratorForm({
               {/* Nombre */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Nombre(s)*
+                  {t("administrators.firstNameLabel")}
                 </label>
                 <input
                   type="text"
                   value={formData.nombre}
                   onChange={(e) => {
                     // Solo permitir letras, espacios y acentos (sin números)
-                    const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                    const sanitized = e.target.value.replace(
+                      /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g,
+                      ""
+                    );
                     setFormData({ ...formData, nombre: sanitized });
                     if (touched.nombre) validateField("nombre");
                   }}
                   onBlur={() => handleBlur("nombre")}
                   className={getInputClasses("nombre")}
-                  placeholder="Nombre(s)"
+                  placeholder={t("administrators.firstNamePlaceholder")}
                 />
                 {touched.nombre && errors.nombre && (
                   <div className="flex items-center mt-1 text-red-400 text-sm">
@@ -277,20 +292,23 @@ export function AddAdministratorForm({
               {/* Apellidos */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Apellido(s)*
+                  {t("administrators.lastNameLabel")}
                 </label>
                 <input
                   type="text"
                   value={formData.apellidos}
                   onChange={(e) => {
                     // Solo permitir letras, espacios y acentos (sin números)
-                    const sanitized = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g, '');
+                    const sanitized = e.target.value.replace(
+                      /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']/g,
+                      ""
+                    );
                     setFormData({ ...formData, apellidos: sanitized });
                     if (touched.apellidos) validateField("apellidos");
                   }}
                   onBlur={() => handleBlur("apellidos")}
                   className={getInputClasses("apellidos")}
-                  placeholder="Apellido(s)"
+                  placeholder={t("administrators.lastNamePlaceholder")}
                 />
                 {touched.apellidos && errors.apellidos && (
                   <div className="flex items-center mt-1 text-red-400 text-sm">
@@ -303,7 +321,7 @@ export function AddAdministratorForm({
               {/* Email */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Correo Electronico*
+                  {t("administrators.emailLabel")}
                 </label>
                 <input
                   type="email"
@@ -315,7 +333,7 @@ export function AddAdministratorForm({
                   }}
                   onBlur={() => handleBlur("email")}
                   className={getInputClasses("email")}
-                  placeholder="Correo Electronico"
+                  placeholder={t("administrators.emailPlaceholder")}
                 />
                 {touched.email && errors.email && (
                   <div className="flex items-center mt-1 text-red-400 text-sm">
@@ -328,7 +346,7 @@ export function AddAdministratorForm({
               {/* Confirmar Email */}
               <div>
                 <label className="block text-sm font-normal text-white mb-2">
-                  Confirmar Correo Electronico*
+                  {t("administrators.confirmEmailLabel")}
                 </label>
                 <input
                   type="email"
@@ -339,7 +357,7 @@ export function AddAdministratorForm({
                   }}
                   onBlur={() => handleBlur("confirmEmail")}
                   className={getInputClasses("confirmEmail")}
-                  placeholder="Confirmar Correo"
+                  placeholder={t("administrators.confirmEmailPlaceholder")}
                 />
                 {touched.confirmEmail && errors.confirmEmail && (
                   <div className="flex items-center mt-1 text-red-400 text-sm">
@@ -351,10 +369,10 @@ export function AddAdministratorForm({
             </div>
 
             {/* Código de Empleado (Solo si es empleado) */}
-            {formData.rol === 'empleado' && (
+            {formData.rol === "empleado" && (
               <div className="bg-white/10 p-4 rounded-lg border border-white/20">
                 <label className="block text-sm font-bold text-white mb-2">
-                  Código de Empleado Generado
+                  {t("administrators.employeeCodeGenerated")}
                 </label>
                 <div className="flex items-center space-x-4">
                   <div className="text-3xl font-mono font-bold text-yellow-400 tracking-widest">
@@ -364,13 +382,13 @@ export function AddAdministratorForm({
                     type="button"
                     onClick={generateEmployeeCode}
                     className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
-                    title="Generar nuevo código"
+                    title={t("administrators.generateNewCode")}
                   >
                     <RefreshCw className="w-5 h-5" />
                   </button>
                 </div>
                 <p className="text-xs text-gray-300 mt-2">
-                  Este código será necesario para que el empleado envíe verificaciones.
+                  {t("administrators.employeeCodeNote")}
                 </p>
               </div>
             )}
@@ -378,8 +396,8 @@ export function AddAdministratorForm({
             {/* Nota informativa */}
             <div className="bg-blue-900 bg-opacity-30 border border-blue-400 rounded-lg p-3">
               <p className="text-blue-200 text-sm">
-                <strong>Nota:</strong> La contraseña inicial será el mismo correo
-                electrónico. El usuario podrá cambiarla después.
+                <strong>{t("administrators.noteLabel")}</strong>{" "}
+                {t("administrators.passwordNote")}
               </p>
             </div>
 
@@ -390,14 +408,16 @@ export function AddAdministratorForm({
                 onClick={onClose}
                 className="px-8 py-2 text-white hover:bg-gray-700 transition-colors rounded-lg"
               >
-                Cancelar
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
               >
-                {loading ? "Guardando..." : "Aceptar"}
+                {loading
+                  ? t("administrators.saving")
+                  : t("administrators.accept")}
               </button>
             </div>
           </form>

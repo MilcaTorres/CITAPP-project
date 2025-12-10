@@ -17,8 +17,10 @@ import AlertMessage from "../AlertMessage";
 import { AddAdministratorForm } from "./AddAdministratorForm";
 import { ConfirmStatusChangeModal } from "./ConfirmStatusChangeModal";
 import { EditAdministratorForm } from "./EditAdministratorForm";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export function AdministratorsView() {
+  const { t } = useLanguage();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [filteredUsuarios, setFilteredUsuarios] = useState<Usuario[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,7 +32,10 @@ export function AdministratorsView() {
     "admin"
   );
   const [loading, setLoading] = useState(false);
-  const [alertData, setAlertData] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alertData, setAlertData] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,7 +74,7 @@ export function AdministratorsView() {
       const appError = handleError(err);
       setAlertData({
         type: "error",
-        message: appError.getUserMessage()
+        message: appError.getUserMessage(),
       });
       console.error("Error loading usuarios:", err);
     } finally {
@@ -89,13 +94,15 @@ export function AdministratorsView() {
       await loadUsuarios();
       setAlertData({
         type: "success",
-        message: usuario.activo ? "Usuario desactivado correctamente" : "Usuario activado correctamente"
+        message: usuario.activo
+          ? t("administrators.userDeactivatedSuccess")
+          : t("administrators.userActivatedSuccess"),
       });
     } catch (err) {
       const appError = handleError(err);
       setAlertData({
         type: "error",
-        message: appError.getUserMessage()
+        message: appError.getUserMessage(),
       });
       console.error("Error toggling usuario:", err);
     } finally {
@@ -118,29 +125,33 @@ export function AdministratorsView() {
       )}
       <div className="space-y-6">
         {/* Título */}
-        <h1 className="text-3xl font-bold text-white">GESTIÓN DE USUARIOS</h1>
+        <h1 className="text-3xl font-bold text-white">
+          {t("administrators.title")}
+        </h1>
 
         {/* Tabs de Roles */}
         <div className="flex space-x-4 border-b border-gray-700 pb-1">
           <button
             onClick={() => setSelectedRole("admin")}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${selectedRole === "admin"
-              ? "bg-white text-primary font-bold"
-              : "text-gray-400 hover:text-white hover:bg-gray-800"
-              }`}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${
+              selectedRole === "admin"
+                ? "bg-white text-primary font-bold"
+                : "text-gray-400 hover:text-white hover:bg-gray-800"
+            }`}
           >
             <ShieldCheck className="w-5 h-5" />
-            <span>Administradores</span>
+            <span>{t("administrators.administrators")}</span>
           </button>
           <button
             onClick={() => setSelectedRole("empleado")}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${selectedRole === "empleado"
-              ? "bg-white text-primary font-bold"
-              : "text-gray-400 hover:text-white hover:bg-gray-800"
-              }`}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-t-lg transition-colors ${
+              selectedRole === "empleado"
+                ? "bg-white text-primary font-bold"
+                : "text-gray-400 hover:text-white hover:bg-gray-800"
+            }`}
           >
             <Users className="w-5 h-5" />
-            <span>Empleados</span>
+            <span>{t("administrators.employees")}</span>
           </button>
         </div>
 
@@ -155,8 +166,8 @@ export function AdministratorsView() {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={
                 selectedRole === "empleado"
-                  ? "Buscar por nombre, email o código..."
-                  : "Buscar..."
+                  ? t("administrators.searchEmployeePlaceholder")
+                  : t("administrators.searchPlaceholder")
               }
               className="w-full pl-4 pr-10 py-3 border border-white rounded-lg bg-secondary text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
             />
@@ -173,8 +184,8 @@ export function AdministratorsView() {
             <Plus className="w-5 h-5" />
             <span>
               {selectedRole === "admin"
-                ? "Registrar administrador"
-                : "Registrar empleado"}
+                ? t("administrators.registerAdministrator")
+                : t("administrators.registerEmployee")}
             </span>
           </button>
         </div>
@@ -186,21 +197,21 @@ export function AdministratorsView() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
-                    Nombre
+                    {t("administrators.nameColumn")}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
-                    Correo
+                    {t("administrators.emailColumn")}
                   </th>
                   {selectedRole === "empleado" && (
                     <th className="px-4 py-3 text-center text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
-                      Código
+                      {t("administrators.codeColumn")}
                     </th>
                   )}
                   <th className="px-4 py-3 text-center text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
-                    Estado
+                    {t("administrators.statusColumn")}
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-black uppercase tracking-wider whitespace-nowrap">
-                    Acciones
+                    {t("administrators.actionsColumn")}
                   </th>
                 </tr>
               </thead>
@@ -235,12 +246,15 @@ export function AdministratorsView() {
 
                     <td className="px-4 py-4 whitespace-nowrap text-center">
                       <span
-                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${usuario.activo
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                          }`}
+                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          usuario.activo
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
                       >
-                        {usuario.activo ? "Activo" : "Desactivado"}
+                        {usuario.activo
+                          ? t("common.active")
+                          : t("common.inactive")}
                       </span>
                     </td>
 
@@ -250,22 +264,28 @@ export function AdministratorsView() {
                           setEditingUsuario(usuario);
                           setShowForm(true);
                         }}
-                        className={`mr-4 transition-colors ${index % 2 === 0
-                          ? "text-white hover:text-gray-300"
-                          : "text-black hover:text-gray-600"
-                          }`}
-                        title="Editar"
+                        className={`mr-4 transition-colors ${
+                          index % 2 === 0
+                            ? "text-white hover:text-gray-300"
+                            : "text-black hover:text-gray-600"
+                        }`}
+                        title={t("common.edit")}
                       >
                         <SquarePen className="w-5 h-5" />
                       </button>
 
                       <button
                         onClick={() => setConfirmingStatusChange(usuario)}
-                        className={`p-2 rounded-lg transition-all ${usuario.activo
-                          ? "hover:bg-red-100 text-red-600 hover:text-red-700"
-                          : "hover:bg-green-100 text-green-600 hover:text-green-700"
-                          }`}
-                        title={usuario.activo ? "Desactivar" : "Activar"}
+                        className={`p-2 rounded-lg transition-all ${
+                          usuario.activo
+                            ? "hover:bg-red-100 text-red-600 hover:text-red-700"
+                            : "hover:bg-green-100 text-green-600 hover:text-green-700"
+                        }`}
+                        title={
+                          usuario.activo
+                            ? t("common.deactivate")
+                            : t("common.activate")
+                        }
                       >
                         {usuario.activo ? (
                           <UserMinus className="w-5 h-5" />
@@ -283,8 +303,9 @@ export function AdministratorsView() {
           {filteredUsuarios.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">
-                No se encontraron{" "}
-                {selectedRole === "admin" ? "administradores" : "empleados"}
+                {selectedRole === "admin"
+                  ? t("administrators.noAdministratorsFound")
+                  : t("administrators.noEmployeesFound")}
               </p>
             </div>
           )}
@@ -295,7 +316,7 @@ export function AdministratorsView() {
           <div className="bg-white rounded-lg shadow px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Items por página */}
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">Mostrar:</span>
+              <span className="text-sm text-gray-700">{t("common.show")}:</span>
               <select
                 value={itemsPerPage}
                 onChange={(e) => {
@@ -310,8 +331,10 @@ export function AdministratorsView() {
                 <option value={50}>50</option>
               </select>
               <span className="text-sm text-gray-700">
-                de {filteredUsuarios.length}{" "}
-                {selectedRole === "admin" ? "administradores" : "empleados"}
+                {t("common.of")} {filteredUsuarios.length}{" "}
+                {selectedRole === "admin"
+                  ? t("administrators.administrators").toLowerCase()
+                  : t("administrators.employees").toLowerCase()}
               </span>
             </div>
 
@@ -321,20 +344,21 @@ export function AdministratorsView() {
                 onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Página anterior"
+                title={t("common.previous")}
               >
                 <ChevronLeft className="w-5 h-5 text-gray-600" />
               </button>
 
               <span className="text-sm text-gray-700 px-4">
-                Página {currentPage} de {totalPages}
+                {t("common.page")} {currentPage} {t("common.of").toLowerCase()}{" "}
+                {totalPages}
               </span>
 
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Página siguiente"
+                title={t("common.next")}
               >
                 <ChevronRight className="w-5 h-5 text-gray-600" />
               </button>
@@ -353,7 +377,10 @@ export function AdministratorsView() {
               loadUsuarios();
               setAlertData({
                 type: "success",
-                message: selectedRole === 'admin' ? "Administrador agregado correctamente" : "Empleado agregado correctamente"
+                message:
+                  selectedRole === "admin"
+                    ? t("administrators.administratorAddedSuccess")
+                    : t("administrators.employeeAddedSuccess"),
               });
             }}
             initialRole={selectedRole}
@@ -373,7 +400,10 @@ export function AdministratorsView() {
               loadUsuarios();
               setAlertData({
                 type: "success",
-                message: editingUsuario?.rol === 'admin' ? "Administrador actualizado correctamente" : "Empleado actualizado correctamente"
+                message:
+                  editingUsuario?.rol === "admin"
+                    ? t("administrators.administratorUpdatedSuccess")
+                    : t("administrators.employeeUpdatedSuccess"),
               });
             }}
           />

@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { Usuario } from "../../types";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface ConfirmStatusChangeModalProps {
   usuario: Usuario;
@@ -13,6 +14,7 @@ export function ConfirmStatusChangeModal({
   onCancel,
 }: ConfirmStatusChangeModalProps) {
   const isActivating = !usuario.activo;
+  const { t } = useLanguage();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -26,36 +28,15 @@ export function ConfirmStatusChangeModal({
           {/* Título */}
           <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
             {isActivating
-              ? "Activar Administrador"
-              : "Desactivar Administrador"}
+              ? t("administrators.confirmActivateTitle")
+              : t("administrators.confirmDeactivateTitle")}
           </h3>
 
           {/* Mensaje */}
           <p className="text-gray-600 text-center mb-6">
-            {isActivating ? (
-              <>
-                ¿Estás seguro que deseas <strong>activar</strong> al
-                administrador{" "}
-                <strong>
-                  {usuario.nombre} {usuario.apellidos}
-                </strong>
-                ?
-              </>
-            ) : (
-              <>
-                ¿Estás seguro que deseas <strong>desactivar</strong> al
-                administrador{" "}
-                <strong>
-                  {usuario.nombre} {usuario.apellidos}
-                </strong>
-                ?
-                <br />
-                <span className="text-sm text-gray-500 mt-2 block">
-                  El administrador no podrá acceder al sistema hasta que sea
-                  activado nuevamente.
-                </span>
-              </>
-            )}
+            {isActivating
+              ? t("administrators.confirmActivateMessage")
+              : t("administrators.confirmDeactivateMessage")}
           </p>
 
           {/* Botones */}
@@ -64,7 +45,7 @@ export function ConfirmStatusChangeModal({
               onClick={onCancel}
               className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button
               onClick={onConfirm}
@@ -74,7 +55,7 @@ export function ConfirmStatusChangeModal({
                   : "bg-red-600 hover:bg-red-700"
               }`}
             >
-              {isActivating ? "Activar" : "Desactivar"}
+              {isActivating ? t("common.activate") : t("common.deactivate")}
             </button>
           </div>
         </div>

@@ -6,6 +6,7 @@ import {
   User,
 } from "lucide-react";
 import type { ReporteSummary } from "../../models/report.model";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface ReportCardProps {
   reporte: ReporteSummary;
@@ -13,6 +14,7 @@ interface ReportCardProps {
 }
 
 export function ReportCard({ reporte, onClick }: ReportCardProps) {
+  const { t } = useLanguage();
   const hasIncidents = reporte.total_discrepancias > 0;
 
   // Formatear fecha y hora para mostrar en la línea de información
@@ -59,7 +61,7 @@ export function ReportCard({ reporte, onClick }: ReportCardProps) {
             <h3 className="font-bold text-base sm:text-lg text-gray-900 group-hover:text-blue-600 transition-colors">
               {" "}
               {/* Ajuste: Reducir tamaño de texto en móvil */}
-              Reporte
+              {t("reports.report")}
             </h3>
           </div>
         </div>
@@ -67,12 +69,12 @@ export function ReportCard({ reporte, onClick }: ReportCardProps) {
         {hasIncidents ? (
           <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full flex items-center font-medium self-start sm:self-center whitespace-nowrap">
             <AlertTriangle className="w-3 h-3 mr-1" />
-            {reporte.total_discrepancias} Incidencias
+            {reporte.total_discrepancias} {t("reports.incidents")}
           </span>
         ) : (
           <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full flex items-center font-medium self-start sm:self-center whitespace-nowrap">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Correcto
+            {t("reports.correct")}
           </span>
         )}
       </div>
@@ -85,7 +87,7 @@ export function ReportCard({ reporte, onClick }: ReportCardProps) {
         <div className="flex items-center text-sm text-gray-600 overflow-hidden">
           <User className="w-4 h-4 mr-2 text-gray-400" />
           <span className="truncate">
-            Empleado:{" "}
+            {t("reports.employee")}:{" "}
             <span className="font-mono font-medium text-gray-900">
               {reporte.empleado_codigo}
             </span>
@@ -93,7 +95,9 @@ export function ReportCard({ reporte, onClick }: ReportCardProps) {
           {/* Ajuste: Truncar para evitar desbordes */}
         </div>
         <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-          <span className="text-sm text-gray-500">Productos verificados</span>
+          <span className="text-sm text-gray-500">
+            {t("reports.productsVerified")}
+          </span>
           <span className="font-bold text-gray-900">
             {reporte.total_productos}
           </span>

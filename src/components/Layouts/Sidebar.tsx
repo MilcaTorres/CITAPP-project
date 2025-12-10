@@ -1,19 +1,36 @@
 import { BarChart3, LogOut, Package, User, Users } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export function Sidebar() {
   const { isAdmin, signOut, usuario } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   const menuItems = [
-    { path: "/productos", label: "Productos", icon: Package, adminOnly: false },
+    {
+      path: "/productos",
+      label: t("navigation.products"),
+      icon: Package,
+      adminOnly: false,
+    },
     ...(isAdmin
       ? [
-        { path: "/administradores", label: "Administradores", icon: Users, adminOnly: true },
-        { path: "/reportes", label: "Reportes", icon: BarChart3, adminOnly: true },
-      ]
+          {
+            path: "/administradores",
+            label: t("navigation.administrators"),
+            icon: Users,
+            adminOnly: true,
+          },
+          {
+            path: "/reportes",
+            label: t("navigation.reports"),
+            icon: BarChart3,
+            adminOnly: true,
+          },
+        ]
       : []),
   ];
 
@@ -26,10 +43,11 @@ export function Sidebar() {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`p-4 rounded-lg transition-colors ${isActive
+            className={`p-4 rounded-lg transition-colors ${
+              isActive
                 ? "bg-red-600 text-white"
                 : "text-gray-400 hover:bg-gray-700 hover:text-white"
-              }`}
+            }`}
             title={item.label}
           >
             <Icon className="w-6 h-6" />
@@ -42,11 +60,12 @@ export function Sidebar() {
       {isAdmin && (
         <button
           onClick={() => navigate("/perfil")}
-          className={`p-4 rounded-lg transition-colors ${location.pathname === "/perfil"
+          className={`p-4 rounded-lg transition-colors ${
+            location.pathname === "/perfil"
               ? "bg-red-600 text-white"
               : "text-gray-400 hover:bg-gray-700 hover:text-white"
-            }`}
-          title="Mi Perfil"
+          }`}
+          title={t("navigation.profile")}
         >
           <User className="w-6 h-6" />
         </button>
@@ -56,7 +75,7 @@ export function Sidebar() {
         <button
           onClick={signOut}
           className="p-4 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
-          title="Cerrar Sesión"
+          title={t("navigation.signOut")}
         >
           <LogOut className="w-6 h-6" />
         </button>

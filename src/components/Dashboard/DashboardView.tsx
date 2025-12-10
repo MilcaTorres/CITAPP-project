@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Package, CheckCircle } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export function DashboardView() {
   const { usuario } = useAuth();
+  const { t } = useLanguage();
   const [stats, setStats] = useState({
     totalProductos: 0,
     productosDisponibles: 0,
@@ -43,7 +45,7 @@ export function DashboardView() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <p className="text-gray-500 text-lg animate-pulse">
-          Cargando estadísticas...
+          {t("dashboard.loadingStats")}
         </p>
       </div>
     );
@@ -53,7 +55,10 @@ export function DashboardView() {
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold text-white">
-          BIENVENIDO {usuario?.nombre?.toUpperCase() || ""}
+          {t("dashboard.welcome")}{" "}
+          {usuario && typeof usuario === "object"
+            ? usuario.nombre?.toUpperCase()
+            : ""}
         </h1>
       </div>
 
@@ -62,7 +67,7 @@ export function DashboardView() {
         <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-lg p-8 transition-transform hover:scale-105">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-700">
-              PRODUCTOS DISPONIBLES
+              {t("dashboard.availableProducts")}
             </h2>
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
@@ -75,7 +80,7 @@ export function DashboardView() {
         <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-lg p-8 transition-transform hover:scale-105">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-700">
-              TOTAL PRODUCTOS
+              {t("dashboard.totalProducts")}
             </h2>
             <Package className="w-8 h-8 text-blue-600" />
           </div>

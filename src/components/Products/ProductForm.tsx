@@ -1,12 +1,12 @@
-import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import type { ProductWithRelations } from '../../models/product.model';
-import { ProductService } from '../../services/product.service';
-import { Categoria, Producto, Ubicacion } from '../../types';
-import { handleError } from '../../utils/error-handler';
-import { sanitizeAlphanumeric } from '../../utils/formValidation';
-
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+import type { ProductWithRelations } from "../../models/product.model";
+import { ProductService } from "../../services/product.service";
+import { Categoria, Producto, Ubicacion } from "../../types";
+import { handleError } from "../../utils/error-handler";
+import { sanitizeAlphanumeric } from "../../utils/formValidation";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface ProductFormProps {
   producto?: Producto | ProductWithRelations;
@@ -23,21 +23,20 @@ function generarClaveAuto() {
   return `PROD-${codigo}`;
 }
 
-
-
 export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
+  const { t } = useLanguage();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    clave: producto?.clave || '',
-    nombre: producto?.nombre || '',
-    marca: producto?.marca || '',
-    tipo: producto?.tipo || '',
+    clave: producto?.clave || "",
+    nombre: producto?.nombre || "",
+    marca: producto?.marca || "",
+    tipo: producto?.tipo || "",
     cantidad: producto ? String(producto?.cantidad) : "",
-    clasificacion: producto?.clasificacion || 'no frágil',
-    categoria_id: producto?.categoria_id || '',
-    ubicacion_id: producto?.ubicacion_id || '',
+    clasificacion: producto?.clasificacion || "no frágil",
+    categoria_id: producto?.categoria_id || "",
+    ubicacion_id: producto?.ubicacion_id || "",
   });
 
   useEffect(() => {
@@ -47,17 +46,17 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
   const loadCategorias = async () => {
     const { data } = await supabase
-      .from('categorias')
-      .select('*')
-      .order('nombre');
+      .from("categorias")
+      .select("*")
+      .order("nombre");
     if (data) setCategorias(data);
   };
 
   const loadUbicaciones = async () => {
     const { data } = await supabase
-      .from('ubicaciones')
-      .select('*')
-      .order('codigo');
+      .from("ubicaciones")
+      .select("*")
+      .order("codigo");
     if (data) setUbicaciones(data);
   };
 
@@ -76,10 +75,10 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
       const dataToSave = {
         clave: claveFinal,
         nombre: formData.nombre,
-        marca: formData.marca || '',
-        tipo: formData.tipo || '',
+        marca: formData.marca || "",
+        tipo: formData.tipo || "",
         cantidad: Number(formData.cantidad) || 0,
-        clasificacion: formData.clasificacion as 'frágil' | 'no frágil',
+        clasificacion: formData.clasificacion as "frágil" | "no frágil",
         categoria_id: formData.categoria_id || undefined,
         ubicacion_id: formData.ubicacion_id || undefined,
       };
@@ -102,13 +101,14 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
         } catch (qrError) {
           console.error("Error generating QR for new product:", qrError);
           // No fallamos la creación del producto si falla el QR, pero avisamos
-          alert("El producto se creó pero hubo un error al generar el código QR. Intente generarlo manualmente.");
+          alert(
+            "El producto se creó pero hubo un error al generar el código QR. Intente generarlo manualmente."
+          );
         }
       }
 
       // Pequeño delay para asegurar que la base de datos se actualizó antes de recargar
-      await new Promise(resolve => setTimeout(resolve, 500));
-
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
       const appError = handleError(error);
       alert(appError.getUserMessage());
@@ -118,13 +118,12 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
     }
   };
 
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900">
-            {producto ? 'Editar Producto' : 'Agregar Producto'}
+            {producto ? t("products.editProduct") : t("products.newProduct")}
           </h2>
           <button
             onClick={onClose}
@@ -136,87 +135,113 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre *
+                {t("products.nameLabel")}
               </label>
               <input
                 type="text"
                 required
                 value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: sanitizeAlphanumeric(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    nombre: sanitizeAlphanumeric(e.target.value),
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Nombre del producto"
+                placeholder={t("products.namePlaceholder")}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Marca *
+                {t("products.brandLabel")}
               </label>
               <input
                 type="text"
                 required
                 value={formData.marca}
-                onChange={(e) => setFormData({ ...formData, marca: sanitizeAlphanumeric(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    marca: sanitizeAlphanumeric(e.target.value),
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Marca del producto"
+                placeholder={t("products.brandPlaceholder")}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo *
+                {t("products.typeLabel")}
               </label>
               <input
                 type="text"
                 required
                 value={formData.tipo}
-                onChange={(e) => setFormData({ ...formData, tipo: sanitizeAlphanumeric(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    tipo: sanitizeAlphanumeric(e.target.value),
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Tipo de producto"
+                placeholder={t("products.typePlaceholder")}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cantidad *
+                {t("products.quantityLabel")}
               </label>
               <input
                 type="number"
                 required
                 min="0"
                 value={formData.cantidad}
-                onChange={(e) => setFormData({ ...formData, cantidad: e.target.value.replace(/^0+(?=\d)/, "") })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    cantidad: e.target.value.replace(/^0+(?=\d)/, ""),
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Clasificación *
+                {t("products.classificationLabel")}
               </label>
               <select
                 value={formData.clasificacion}
-                onChange={(e) => setFormData({ ...formData, clasificacion: e.target.value as 'frágil' | 'no frágil' })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    clasificacion: e.target.value as "frágil" | "no frágil",
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="no frágil">No frágil</option>
-                <option value="frágil">Frágil</option>
+                <option value="no frágil">{t("products.notFragile")}</option>
+                <option value="frágil">{t("products.fragile")}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoría *
+                {t("products.categoryLabel")}
               </label>
               <select
                 value={formData.categoria_id}
-                onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, categoria_id: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Seleccionar categoría</option>
+                <option value="">{t("products.selectCategory")}</option>
                 {categorias.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.nombre}
@@ -227,14 +252,16 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ubicación *
+                {t("products.locationLabel")}
               </label>
               <select
                 value={formData.ubicacion_id}
-                onChange={(e) => setFormData({ ...formData, ubicacion_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, ubicacion_id: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Seleccionar ubicación</option>
+                <option value="">{t("products.selectLocation")}</option>
                 {ubicaciones.map((ub) => (
                   <option key={ub.id} value={ub.id}>
                     {ub.codigo} - {ub.pasillo}, {ub.nivel}
@@ -250,14 +277,14 @@ export function ProductForm({ producto, onClose, onSave }: ProductFormProps) {
               onClick={onClose}
               className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Guardando...' : 'Guardar'}
+              {loading ? t("administrators.saving") : t("common.save")}
             </button>
           </div>
         </form>

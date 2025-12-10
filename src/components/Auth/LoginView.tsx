@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { LanguageToggle } from "../Layouts/LanguageToggle";
 
 export function LoginView() {
   const location = useLocation();
@@ -14,6 +16,7 @@ export function LoginView() {
     signOut,
   } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -106,22 +109,18 @@ export function LoginView() {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">
-              Cuenta Pendiente
+              {t("auth.pendingAccount")}
             </h2>
-            <p className="text-gray-300">
-              Tu cuenta ha sido creada pero requiere aprobación de un
-              administrador para acceder.
-            </p>
+            <p className="text-gray-300">{t("auth.accountPendingMessage")}</p>
             <p className="text-gray-400 text-sm mt-4">
-              Por favor, contacta al administrador del sistema para activar tu
-              cuenta.
+              {t("auth.contactAdmin")}
             </p>
           </div>
           <button
             onClick={() => signOut()}
             className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
           >
-            Cerrar Sesión
+            {t("auth.signOut")}
           </button>
         </div>
       </div>
@@ -136,24 +135,23 @@ export function LoginView() {
         <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-xl p-8 text-center">
           <div className="mb-6">
             <h2 className="text-xl font-bold text-white mb-2">
-              Configurando cuenta...
+              {t("auth.configuringAccount")}
             </h2>
             <p className="text-gray-300">
-              Estamos preparando tu perfil. Si esto persiste, por favor contacta
-              soporte.
+              {t("auth.configuringAccountMessage")}
             </p>
           </div>
           <button
             onClick={() => window.location.reload()}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors mb-3"
           >
-            Reintentar
+            {t("auth.retry")}
           </button>
           <button
             onClick={() => signOut()}
             className="w-full bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors"
           >
-            Cerrar Sesión
+            {t("auth.signOut")}
           </button>
         </div>
       </div>
@@ -171,19 +169,28 @@ export function LoginView() {
       {/* Capa oscura de fondo */}
       <div className="absolute inset-0 bg-black bg-opacity-60" />
 
+      {/* Language Toggle - Top Right Corner */}
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageToggle />
+      </div>
+
       {/* Contenedor del formulario */}
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="bg-gray-900 bg-opacity-90 backdrop-blur-sm rounded-lg shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">BIENVENIDO</h1>
-            <p className="text-gray-300 text-sm">Acceso para Administradores</p>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {t("auth.welcome")}
+            </h1>
+            <p className="text-gray-300 text-sm">
+              {t("auth.accessForAdministrators")}
+            </p>
           </div>
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Correo
+                {t("auth.emailLabel")}
               </label>
               <input
                 type="email"
@@ -191,13 +198,13 @@ export function LoginView() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Ingresa tu correo"
+                placeholder={t("auth.emailPlaceholder")}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Contraseña
+                {t("auth.passwordLabel")}
               </label>
               <input
                 type="password"
@@ -205,7 +212,7 @@ export function LoginView() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Contraseña"
+                placeholder={t("auth.passwordPlaceholder")}
               />
             </div>
 
@@ -226,17 +233,15 @@ export function LoginView() {
               disabled={loading || authLoading}
               className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
             >
-              {loading || authLoading
-                ? "Iniciando sesión..."
-                : "Iniciar Sesión"}
+              {loading || authLoading ? t("auth.signingIn") : t("auth.signIn")}
             </button>
 
             <button
               type="button"
-              onClick={() => navigate('/empleado')}
+              onClick={() => navigate("/empleado")}
               className="w-full bg-gray-700 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2"
             >
-              <span>Acceder como Empleado</span>
+              <span>{t("auth.accessAsEmployee")}</span>
             </button>
           </form>
 
@@ -246,7 +251,9 @@ export function LoginView() {
               <div className="w-full border-t border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-900 text-gray-400">O</span>
+              <span className="px-2 bg-gray-900 text-gray-400">
+                {t("auth.or")}
+              </span>
             </div>
           </div>
 
@@ -280,19 +287,18 @@ export function LoginView() {
                 d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.55 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
               />
             </svg>
-            Continuar con Google
+            {t("auth.continueWithGoogle")}
           </button>
 
           <div className="mt-6 text-center space-y-4">
             <button
               type="button"
-              onClick={() => navigate('/forgot-password')}
+              onClick={() => navigate("/forgot-password")}
               className="text-gray-400 text-sm hover:text-white transition-colors"
             >
-              ¿Olvidó su contraseña?
+              {t("auth.forgotPassword")}
             </button>
           </div>
-
         </div>
       </div>
     </div>
